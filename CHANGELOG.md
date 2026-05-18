@@ -16,3 +16,4 @@
 - Fix-Assistent und Guided-Fixes fuer Apache und Systemupdates erweitert
 - lokaler Smoke-Test und Demo-Report-Generator fuer Qualitaetssicherung ergaenzt
 - install.sh und direkte wget/curl-Installationsanleitung ergaenzt
+- install.sh ersetzt bestehende Installationen jetzt automatisch und stellt config.conf wieder her

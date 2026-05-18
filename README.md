@@ -45,13 +45,15 @@ sudo -E bash ./riveria-security-tool.sh
 Direkt per `wget` herunterladen und installieren:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh | bash
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && ./install.sh
 ```
+
+Der Installer ersetzt eine vorhandene Installation im Zielordner automatisch. Falls dort bereits eine `config.conf` liegt, wird sie vor dem Ersetzen gesichert und danach wiederhergestellt.
 
 Optional mit eigenem Zielordner:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh | bash -s -- "$HOME/riveria-security-tool"
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && ./install.sh "$HOME/riveria-security-tool"
 ```
 
 Falls `wget` nicht vorhanden ist:

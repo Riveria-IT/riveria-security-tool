@@ -10,6 +10,7 @@ TARGET_DIR="${1:-$HOME/riveria-security-tool}"
 TMP_DIR="$(mktemp -d)"
 ARCHIVE_FILE="$TMP_DIR/${REPO_NAME}.tar.gz"
 EXTRACT_DIR="$TMP_DIR/extract"
+CONFIG_BACKUP_FILE="$TMP_DIR/config.conf.backup"
 
 cleanup() {
     rm -rf "$TMP_DIR"
@@ -32,14 +33,23 @@ download_archive() {
 }
 
 prepare_target() {
-    if [ -e "$TARGET_DIR" ] && [ -n "$(find "$TARGET_DIR" -mindepth 1 -maxdepth 1 2>/dev/null | head -n 1)" ]; then
-        printf 'Fehler: Zielordner existiert bereits und ist nicht leer: %s\n' "$TARGET_DIR" >&2
-        printf 'Bitte Ordner loeschen oder anderen Zielpfad angeben, z. B.:\n' >&2
-        printf '  bash install.sh "$HOME/riveria-security-tool-alpha"\n' >&2
-        return 1
+    if [ -f "$TARGET_DIR/config.conf" ]; then
+        cp -f "$TARGET_DIR/config.conf" "$CONFIG_BACKUP_FILE"
+    fi
+
+    if [ -e "$TARGET_DIR" ]; then
+        printf 'Bestehende Installation gefunden, Zielordner wird ersetzt: %s\n' "$TARGET_DIR"
+        rm -rf "$TARGET_DIR"
     fi
 
     mkdir -p "$(dirname "$TARGET_DIR")"
+}
+
+restore_local_config() {
+    if [ -f "$CONFIG_BACKUP_FILE" ]; then
+        cp -f "$CONFIG_BACKUP_FILE" "$TARGET_DIR/config.conf"
+        printf 'Vorhandene config.conf wurde wiederhergestellt.\n'
+    fi
 }
 
 install_launcher() {
@@ -64,6 +74,7 @@ main() {
 
     mv "$EXTRACT_DIR/${REPO_NAME}-${REPO_BRANCH}" "$TARGET_DIR"
     chmod +x "$TARGET_DIR/riveria-security-tool.sh" "$TARGET_DIR/install.sh" "$TARGET_DIR/tests/"*.sh 2>/dev/null || true
+    restore_local_config
 
     printf '\nInstallation abgeschlossen.\n'
     printf 'Zielordner: %s\n' "$TARGET_DIR"
