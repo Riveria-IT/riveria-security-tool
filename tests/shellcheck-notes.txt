@@ -1,0 +1,5 @@
+Qualitaetsnotizen:
+
+- Vor jedem Release mindestens `bash ./tests/smoke-test.sh` ausfuehren.
+- ShellCheck bleibt empfohlen, ist aber nicht zwingend auf jedem Zielsystem verfuegbar.
+- Bei spaeterer CI-Einfuehrung sollten mindestens Syntaxcheck, Smoke-Test und optional ShellCheck laufen.

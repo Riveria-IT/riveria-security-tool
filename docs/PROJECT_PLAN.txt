@@ -1,0 +1,2 @@
+Der urspruengliche Detailplan wurde im Projektgespraech definiert.
+Den aktuellen Umsetzungsstand dazu findest du in ../PROJECT_STATUS.md.
