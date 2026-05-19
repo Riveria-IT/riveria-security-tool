@@ -1,9 +1,0 @@
-
-[1m== SSH Haertung ==[0m
-Erkannter SSH-Port: 2222
-[34m[INFO][0m Der Fix aendert bewusst keine AllowUsers- oder PasswordAuthentication-Regel, um bestehende Setups nicht auszusperren.
-SSH-Konfiguration sicher haerten? [y/N] [32m[OK][0m Backup erstellt: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug-2/ssh/backups/sshd_config.bak
-[32m[OK][0m SSH-Defaults wurden eingetragen.
-[32m[OK][0m SSH-Konfigurationstest erfolgreich.
-[32m[OK][0m SSH wurde neu geladen.
-[34m[INFO][0m Bitte aktuelle SSH-Session offen lassen und neuen Login auf Port 2222 testen.

@@ -1,1 +1,0 @@
-[33m[WARNUNG][0m Bitte mit sudo oder als root ausfuehren.

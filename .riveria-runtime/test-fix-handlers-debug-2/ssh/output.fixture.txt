@@ -1,9 +1,0 @@
-
-== SSH Haertung ==
-Erkannter SSH-Port: 2222
-[INFO] Der Fix aendert bewusst keine AllowUsers- oder PasswordAuthentication-Regel, um bestehende Setups nicht auszusperren.
-SSH-Konfiguration sicher haerten? [y/N] [OK] Backup erstellt: __SSH_BACKUP__
-[OK] SSH-Defaults wurden eingetragen.
-[OK] SSH-Konfigurationstest erfolgreich.
-[OK] SSH wurde neu geladen.
-[INFO] Bitte aktuelle SSH-Session offen lassen und neuen Login auf Port 2222 testen.

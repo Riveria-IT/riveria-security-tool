@@ -1,7 +1,0 @@
-
-== Rechte-Fixes ==
-[INFO] Gepruefte sensible Dateien:
-- __ENV_FILE__
-Sensible Dateirechte gezielt haerten? [y/N] [OK] Backup erstellt: __ENV_BACKUP__
-[OK] Rechte gehaertet: __ENV_FILE__ -> 640
-[INFO] Gezielte Rechte-Haertung abgeschlossen.

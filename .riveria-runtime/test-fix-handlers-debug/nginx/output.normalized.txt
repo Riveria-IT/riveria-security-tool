@@ -1,9 +1,0 @@
-
-== nginx Security Header ==
-Snippet:         /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug/nginx/riveria-security-headers.conf
-Zieldatei:       /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug/nginx/site.conf
-nginx-Security-Snippet erstellen und wenn sicher moeglich einbinden? [y/N] [OK] Backup erstellt: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug/nginx/backups/2026-05-19_13-09-39_site.conf
-[OK] Snippet geschrieben: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug/nginx/riveria-security-headers.conf
-[OK] Include eingefuegt: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug/nginx/site.conf
-[OK] nginx-Konfigurationstest erfolgreich.
-[OK] nginx wurde neu geladen.

@@ -4,8 +4,7 @@ Modulare Bash-Basis fuer Server-Audit, Security-Checks, Profil-Erkennung und gef
 
 Aktueller Stand: `1.0.0-alpha`
 
-Fuer normale Nutzer:
-[BEGINNER_GUIDE.md](/Users/michaelberger/Desktop/riveria-security-tool/docs/BEGINNER_GUIDE.md:1)
+Fuer normale Nutzer: [docs/BEGINNER_GUIDE.md](docs/BEGINNER_GUIDE.md)
 
 ## 3-Minuten-Start
 
@@ -20,7 +19,7 @@ wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security
 2. Starten
 
 ```bash
-sudo riveria-security-tool
+sudo "$HOME/.local/bin/riveria-security-tool"
 ```
 
 3. Im Menue `20) Einsteiger-Modus (einfach gefuehrt)` waehlen
@@ -37,7 +36,7 @@ Dann passiert Folgendes:
 Wenn du direkt ohne Aenderungen testen willst:
 
 ```bash
-DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E riveria-security-tool
+DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E "$HOME/.local/bin/riveria-security-tool"
 ```
 
 ## Fuer Einsteiger
@@ -83,13 +82,15 @@ RESULT_VIEW_MODE=simple sudo -E bash ./riveria-security-tool.sh
 
 ## Direkt Installieren
 
+Die Standard-Installation legt das Projekt nach `~/riveria-security-tool` und den Launcher nach `~/.local/bin/riveria-security-tool`.
+
 Direkt per `wget` herunterladen und installieren:
 
 ```bash
 wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && ./install.sh
 ```
 
-Der Installer ersetzt eine vorhandene Installation im Zielordner automatisch. Falls dort bereits eine `config.conf` liegt, wird sie vor dem Ersetzen gesichert und danach wiederhergestellt.
+Der Installer ersetzt eine vorhandene Installation im Zielordner automatisch. Falls dort bereits eine `config.conf` liegt, wird sie vor dem Ersetzen gesichert und danach wiederhergestellt. Gefaehrliche Zielordner wie `/`, `/root`, `/home`, `/usr`, `/var`, `/etc` und `/opt` werden blockiert.
 
 Optional mit eigenem Zielordner:
 
@@ -97,14 +98,32 @@ Optional mit eigenem Zielordner:
 wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && ./install.sh "$HOME/riveria-security-tool"
 ```
 
-Falls `wget` nicht vorhanden ist:
+Falls `wget` nicht vorhanden ist, funktioniert auch `curl`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh -o install.sh && chmod +x install.sh && ./install.sh
 ```
 
-Raw Installer:
-[install.sh](https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh)
+Professioneller fuer produktive Hosts ist ein System-Launcher unter `/usr/local/bin`, damit `sudo riveria-security-tool` zuverlaessig funktioniert:
+
+```bash
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo INSTALL_LAUNCHER_MODE=system ./install.sh /opt/riveria-security-tool
+```
+
+Ohne System-Launcher kennt `sudo` `~/.local/bin` oft nicht. Dann nutze den vollen Pfad:
+
+```bash
+sudo "$HOME/.local/bin/riveria-security-tool"
+```
+
+Der Installer unterstuetzt ausserdem:
+
+- `RIVERIA_REF=main` und `RIVERIA_REF_TYPE=branch` fuer den aktuellen Alpha-Branch
+- `RIVERIA_REF=v1.0.0-alpha` und `RIVERIA_REF_TYPE=tag` fuer einen konkreten Tag, sobald Releases vorhanden sind
+
+Aktuell zeigt `main` auf den Alpha-Stand. Bis feste Releases gepflegt werden, sollte das klar als Alpha behandelt werden.
+
+Raw-Installer: [install.sh](https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh)
 
 ## Sicherheitsregeln
 
@@ -118,7 +137,7 @@ Raw Installer:
 
 ## Status
 
-Diese Alpha-Version bildet den Projektplan bereits zu grossen Teilen ab:
+Diese Alpha-Version deckt bereits einen grossen Teil des geplanten Funktionsumfangs ab, ist aber noch kein stabiles Production-Release:
 
 - modulare Struktur in `lib/`, `checks/`, `fixes/`, `profiles/`
 - Hauptmenue und Basis-Workflows
@@ -136,8 +155,9 @@ Diese Alpha-Version bildet den Projektplan bereits zu grossen Teilen ab:
 - erweiterte Detection sowie App-, Exposure-, System-, Docker-, Mail- und SSL/DNS-Checks
 - Fix-Assistent mit Untermenue fuer kritisch, alle, Auswahl und Vorschau
 
-Den aktuellen Soll-Ist-Abgleich findest du in [PROJECT_STATUS.md](/Users/michaelberger/Desktop/riveria-security-tool/PROJECT_STATUS.md:1).
-Release-Notizen findest du in [RELEASE_NOTES.md](/Users/michaelberger/Desktop/riveria-security-tool/RELEASE_NOTES.md:1).
+Den aktuellen Soll-Ist-Abgleich findest du in [PROJECT_STATUS.md](PROJECT_STATUS.md).
+Release-Notizen findest du in [RELEASE_NOTES.md](RELEASE_NOTES.md).
+Hinweise fuer Sicherheitsmeldungen stehen in [SECURITY.md](SECURITY.md).
 
 ## Qualitaet
 
@@ -145,10 +165,12 @@ Release-Notizen findest du in [RELEASE_NOTES.md](/Users/michaelberger/Desktop/ri
 bash ./tests/smoke-test.sh
 ```
 
-Damit werden Syntax, Menue-Start und Demo-Report-Erzeugung lokal geprueft.
+Damit werden Syntax, Menue-Start, Fixture-Tests und Demo-Report-Erzeugung lokal geprueft.
+
+Fuer CI gibt es ausserdem eine GitHub Action mit ShellCheck und Smoke-Test.
 
 ## Naechste Ausbaustufen
 
 - Edge Cases fuer Reverse Proxy, Mailcow und Multi-vHost weiter verfeinern
 - mehr reale Beispielpfade und Testfaelle aufnehmen
-- ShellCheck und spaetere CI-Anbindung ergaenzen
+- Releases/Tags fuer reproduzierbare Installer-Staende pflegen

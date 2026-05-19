@@ -1,9 +1,0 @@
-
-== nginx Security Header ==
-Snippet:         __SNIPPET_PATH__
-Zieldatei:       __SITE_PATH__
-nginx-Security-Snippet erstellen und wenn sicher moeglich einbinden? [y/N] [OK] Backup erstellt: __BACKUP_PATH__/2026-05-19_13-09-39_site.conf
-[OK] Snippet geschrieben: __SNIPPET_PATH__
-[OK] Include eingefuegt: __SITE_PATH__
-[OK] nginx-Konfigurationstest erfolgreich.
-[OK] nginx wurde neu geladen.

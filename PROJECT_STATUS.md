@@ -2,7 +2,7 @@
 
 Version: `1.0.0-alpha`
 
-Dieses Dokument spiegelt den aktuellem Umsetzungsstand gegen den Projektplan wider.
+Dieses Dokument beschreibt den aktuellen Alpha-Stand gegen den Projektplan. Es ist bewusst konservativ formuliert und keine Zusage fuer ein stabiles Production-Release.
 
 ## Erfuellt
 
@@ -17,6 +17,7 @@ Dieses Dokument spiegelt den aktuellem Umsetzungsstand gegen den Projektplan wid
 - Erweiterter Code-Security-Scanner
 - Erweiterte Detection fuer Dienste, Projekte und mehrere Profile
 - Lokaler Smoke-Test und Demo-Report-Generator
+- CI-Grundlage mit ShellCheck und Smoke-Test per GitHub Actions
 
 ## Teilweise
 
@@ -47,16 +48,19 @@ Dieses Dokument spiegelt den aktuellem Umsetzungsstand gegen den Projektplan wid
 - `run_updates_install()`
   Fuehrt Updates aus, ist aber noch kein vollwertiger Patch-Management-Workflow.
 
+- `install.sh`
+  Der Installer ist jetzt defensiver, blockiert gefaehrliche Zielordner und unterstuetzt einen System-Launcher, bleibt aber bis zu sauberen Release-Tags bewusst Alpha-orientiert.
+
 ## Offen
 
 - Vollstaendige Multi-vHost- und Reverse-Proxy-Zuordnung von Webroot zu oeffentlicher URL
 - Sehr tiefe Mailcow-Analyse pro Containerrolle und Health-Status
 - Vollstaendige DNS-Auswertung mit mehr Fallback-Mechanismen auf sehr schlanken Zielsystemen
-- Optionales `install.sh`
+- Gepflegte Release-Tags fuer reproduzierbare Installationen statt Alpha-Branch als Standardquelle
 - Vergleich zwischen Reports
 - Optionale Weboberflaeche
-- Formale CI-Integration mit ShellCheck und zusaetzlichen Regressionstests
+- Zusaetzliche Regressionstests fuer mehr Edge Cases und reale Fixtures
 
 ## Fazit
 
-Der Stand ist aus Projektsicht kein reines Grundgeruest mehr, sondern ein frueher Alpha-Release mit breiter Funktionsabdeckung. Die groessten Restarbeiten liegen jetzt eher in Edge Cases, Tiefe und Qualitaetssicherung als in fehlender Grundarchitektur.
+Der Stand ist kein reines Grundgeruest mehr, sondern ein fruehes Alpha-Release mit brauchbarer Kernfunktionalitaet. Was noch fehlt, sind vor allem reproduzierbare Releases, mehr Abdeckung fuer Sonderfaelle und weitere Qualitaetssicherung vor einem spaeteren stabilen Release.
