@@ -87,33 +87,34 @@ Die Standard-Installation legt das Projekt nach `~/riveria-security-tool` und de
 Direkt per `wget` herunterladen und installieren:
 
 ```bash
-wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && ./install.sh
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo ./install.sh
 ```
 
 Der Installer ersetzt eine vorhandene Installation im Zielordner automatisch. Falls dort bereits eine `config.conf` liegt, wird sie vor dem Ersetzen gesichert und danach wiederhergestellt. Gefaehrliche Zielordner wie `/`, `/root`, `/home`, `/usr`, `/var`, `/etc` und `/opt` werden blockiert.
+Nach erfolgreicher Installation startet Riveria direkt automatisch. Falls du das nicht willst, setze `AUTO_START_AFTER_INSTALL=0`.
 
 Optional mit eigenem Zielordner:
 
 ```bash
-wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && ./install.sh "$HOME/riveria-security-tool"
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo ./install.sh /opt/riveria-security-tool
 ```
 
 Falls `wget` nicht vorhanden ist, funktioniert auch `curl`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh -o install.sh && chmod +x install.sh && ./install.sh
+curl -fsSL https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh -o install.sh && chmod +x install.sh && sudo ./install.sh
 ```
 
-Professioneller fuer produktive Hosts ist ein System-Launcher unter `/usr/local/bin`, damit `sudo riveria-security-tool` zuverlaessig funktioniert:
+Fuer produktive Hosts wird standardmaessig ein System-Launcher unter `/usr/local/bin` angelegt, damit `sudo riveria-security-tool` zuverlaessig funktioniert:
 
 ```bash
-wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo INSTALL_LAUNCHER_MODE=system ./install.sh /opt/riveria-security-tool
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo ./install.sh
 ```
 
-Ohne System-Launcher kennt `sudo` `~/.local/bin` oft nicht. Dann nutze den vollen Pfad:
+Optional kannst du weiter einen lokalen Launcher erzwingen:
 
 ```bash
-sudo "$HOME/.local/bin/riveria-security-tool"
+INSTALL_LAUNCHER_MODE=local AUTO_START_AFTER_INSTALL=0 sudo ./install.sh "$HOME/riveria-security-tool"
 ```
 
 Der Installer unterstuetzt ausserdem:

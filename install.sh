@@ -14,6 +14,7 @@ CONFIG_BACKUP_FILE="$TMP_DIR/config.conf.backup"
 LOCAL_LAUNCHER_DIR="$HOME/.local/bin"
 SYSTEM_LAUNCHER_DIR="/usr/local/bin"
 INSTALL_LAUNCHER_MODE="${INSTALL_LAUNCHER_MODE:-system}"
+AUTO_START_AFTER_INSTALL="${AUTO_START_AFTER_INSTALL:-1}"
 RAW_TARGET_DIR="${1:-/opt/riveria-security-tool}"
 TARGET_DIR=""
 ARCHIVE_URL=""
@@ -161,6 +162,29 @@ EOF
     chmod +x "$launcher_target"
 }
 
+auto_start_application() {
+    local launcher_path="$1"
+
+    case "$AUTO_START_AFTER_INSTALL" in
+        1|true|yes) ;;
+        0|false|no)
+            printf '\nAutostart nach Installation deaktiviert.\n'
+            return 0
+            ;;
+        *)
+            fail "AUTO_START_AFTER_INSTALL muss 1/0, true/false oder yes/no sein."
+            ;;
+    esac
+
+    if [ ! -t 0 ] || [ ! -t 1 ]; then
+        printf '\nAutostart uebersprungen, weil keine interaktive Shell erkannt wurde.\n'
+        return 0
+    fi
+
+    printf '\nRiveria wird jetzt direkt gestartet...\n\n'
+    exec "$launcher_path"
+}
+
 install_launcher() {
     local launcher_target
 
@@ -235,6 +259,8 @@ main() {
 
     printf '\nSicherer Vorschau-Start ohne echte Aenderungen:\n'
     printf 'DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E "%s"\n' "$launcher_path"
+
+    auto_start_application "$launcher_path"
 }
 
 main "$@"
