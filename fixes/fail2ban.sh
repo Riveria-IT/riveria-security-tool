@@ -2,14 +2,25 @@
 
 fix_install_fail2ban() {
     section "Fail2ban"
+    need_root
     confirm_fix_action "Fail2ban installieren oder absichern?" || {
         info "Fail2ban-Fix abgebrochen."
         return
     }
 
-    local config="/etc/fail2ban/jail.local"
+    local config_dir="/etc/fail2ban/jail.d"
+    local config="$config_dir/riveria-sshd.local"
     local backup=""
     local install_attempted=0
+
+    if dry_run_enabled; then
+        if ! cmd_exists fail2ban-client; then
+            dry_run_info "Fail2ban wuerde bei Bedarf ueber apt-get installiert."
+        fi
+        dry_run_info "Fail2ban-Jail-Datei wuerde geschrieben: $config"
+        dry_run_info "Anschliessend wuerde 'fail2ban-client -t', 'systemctl enable fail2ban' und 'systemctl restart fail2ban' erfolgen."
+        return
+    fi
 
     if ! cmd_exists fail2ban-client; then
         if ! cmd_exists apt-get; then
@@ -24,6 +35,11 @@ fix_install_fail2ban() {
         install_attempted=1
         ok "Fail2ban wurde installiert."
     fi
+
+    mkdir -p "$config_dir" || {
+        bad "Konfigurationsordner konnte nicht erstellt werden: $config_dir"
+        return
+    }
 
     if [ -f "$config" ]; then
         backup="$(safe_backup "$config")" || {
@@ -44,12 +60,14 @@ backend = systemd
 enabled = true
 port = ssh
 EOF
-    ok "jail.local wurde geschrieben."
+    ok "Riveria-Fail2ban-Jail wurde geschrieben."
 
     if ! validate_command "Fail2ban-Konfigurationstest" fail2ban-client -t; then
         if [ -n "$backup" ]; then
             restore_backup "$backup" "$config"
             info "Backup wurde wiederhergestellt: $backup"
+        else
+            rm -f "$config"
         fi
         return
     fi

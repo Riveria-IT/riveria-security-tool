@@ -77,6 +77,7 @@ detect_projects() {
 
 detect_profiles() {
     [ "${#DETECTED_PROJECTS[@]}" -gt 0 ] && register_detected_profile "Webserver"
+    detect_proxy_backends
 
     if printf '%s\n' "${DETECTED_COMPONENTS[@]}" | grep -qx "docker"; then
         register_detected_profile "Docker Host"
@@ -99,7 +100,10 @@ detect_profiles() {
     if [ -n "$PUBLIC_WEB_URL" ] && [ -n "$LOCAL_WEB_URL" ] && printf '%s\n' "$LOCAL_WEB_URL" | grep -Eq '127\.0\.0\.1|localhost'; then
         register_detected_profile "Reverse Proxy"
     fi
-    if printf '%s\n' "${DETECTED_PROJECTS[@]}" | grep -Eqi '(contact|kontakt|mailer|mail)'; then
+    if [ "${#PROXY_BACKEND_TARGETS[@]}" -gt 0 ] && printf '%s\n' "${DETECTED_COMPONENTS[@]}" | grep -Eq 'nginx|apache'; then
+        register_detected_profile "Reverse Proxy"
+    fi
+    if printf '%s\n' "${DETECTED_PROJECTS[@]-}" | grep -Eqi '(contact|kontakt|mailer|mail)'; then
         register_detected_profile "Kontaktformular/Mailversand"
     fi
     if [ "${#DETECTED_PROFILES[@]}" -eq 0 ]; then

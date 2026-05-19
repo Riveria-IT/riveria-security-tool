@@ -1,0 +1,7 @@
+
+== Rechte-Fixes ==
+[INFO] Gepruefte sensible Dateien:
+- /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug-2/permissions/.env
+Sensible Dateirechte gezielt haerten? [y/N] [OK] Backup erstellt: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug-2/permissions/backups/.env.bak
+[OK] Rechte gehaertet: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/test-fix-handlers-debug-2/permissions/.env -> 640
+[INFO] Gezielte Rechte-Haertung abgeschlossen.

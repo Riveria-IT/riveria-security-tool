@@ -1,0 +1,2 @@
+web nginx 0.0.0.0:8088->8088/tcp
+mail postfix 0.0.0.0:25->25/tcp

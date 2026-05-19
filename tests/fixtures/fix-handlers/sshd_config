@@ -1,0 +1,7 @@
+Port 2222
+PermitRootLogin no
+PasswordAuthentication yes
+X11Forwarding no
+PubkeyAuthentication yes
+MaxAuthTries 3
+LoginGraceTime 30

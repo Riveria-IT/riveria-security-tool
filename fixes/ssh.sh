@@ -9,10 +9,30 @@ fix_harden_ssh() {
         return
     }
 
+    detect_active_listeners
+    local ssh_listener_info ssh_port
+    ssh_listener_info="$(list_listener_binds_for_process 'sshd' || true)"
+    ssh_port="22"
+    if [ -n "$ssh_listener_info" ]; then
+        ssh_port="$(printf '%s\n' "$ssh_listener_info" | head -n 1)"
+        ssh_port="$(listener_port_from_bind "$ssh_port")"
+    fi
+
+    print_key_value "Erkannter SSH-Port" "$ssh_port"
+    info "Der Fix aendert bewusst keine AllowUsers- oder PasswordAuthentication-Regel, um bestehende Setups nicht auszusperren."
+
     confirm_fix_action "SSH-Konfiguration sicher haerten?" || {
         info "SSH-Haertung abgebrochen."
         return
     }
+
+    if dry_run_enabled; then
+        dry_run_info "SSH-Konfiguration wuerde gehaertet: $config"
+        dry_run_info "Direktiven: PermitRootLogin no, PubkeyAuthentication yes, MaxAuthTries 3, LoginGraceTime 30, X11Forwarding no"
+        dry_run_info "Anschliessend wuerde 'sshd -t -f $config' und ein Reload von SSH erfolgen."
+        dry_run_info "Empfohlener manueller Test bliebe: neuer Login auf Port $ssh_port."
+        return
+    fi
 
     local backup
     backup="$(safe_backup "$config")" || {
@@ -27,13 +47,9 @@ fix_harden_ssh() {
         return
     }
     set_config_directive "$config" "PubkeyAuthentication" "yes"
-    set_config_directive "$config" "PasswordAuthentication" "yes"
     set_config_directive "$config" "MaxAuthTries" "3"
     set_config_directive "$config" "LoginGraceTime" "30"
     set_config_directive "$config" "X11Forwarding" "no"
-    if [ -n "$SSH_ALLOWED_USER" ]; then
-        set_config_directive "$config" "AllowUsers" "$SSH_ALLOWED_USER"
-    fi
     ok "SSH-Defaults wurden eingetragen."
 
     if ! validate_command "SSH-Konfigurationstest" sshd -t -f "$config"; then
@@ -55,5 +71,5 @@ fix_harden_ssh() {
         fi
     fi
 
-    info "Bitte aktuelle SSH-Session offen lassen und neuen Login testen."
+    info "Bitte aktuelle SSH-Session offen lassen und neuen Login auf Port $ssh_port testen."
 }

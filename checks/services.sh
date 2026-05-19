@@ -3,21 +3,23 @@
 run_service_checks() {
     section "Service Checks"
 
-    if cmd_exists ss; then
-        info "Offene Ports werden ueber ss ermittelt."
-        local port_output
-        port_output="$(ss -tulpen 2>/dev/null || true)"
+    if [ "${#ACTIVE_LISTENER_PROTOCOLS[@]}" -gt 0 ] || cmd_exists ss; then
+        info "Offene Ports werden ueber aktive Listener ermittelt."
+        detect_active_listeners
+        detect_proxy_backends
+        print_active_listener_summary
+        print_proxy_backend_summary
 
-        if printf '%s\n' "$port_output" | grep -Eq ':(3306|5432|6379|27017)\b'; then
+        if active_listener_exists "3306" "public" || active_listener_exists "5432" "public" || active_listener_exists "6379" "public" || active_listener_exists "27017" "public"; then
             register_issue "SVC-001" "Datenbank-Port offen" "KRITISCH" \
-                "Mindestens ein typischer Datenbank-Port lauscht auf dem System." \
+                "Mindestens ein typischer Datenbank-Port ist von aussen oder netzweit erreichbar gebunden." \
                 "Pruefen, ob Bind-Adresse oder Firewall angepasst werden muss." "GUIDED" "no"
             bad "Typischer Datenbank-Port gefunden."
         else
-            ok "Keine typischen DB-Ports in Basispruefung gefunden."
+            ok "Keine oeffentlichen typischen DB-Ports in Basispruefung gefunden."
         fi
 
-        if printf '%s\n' "$port_output" | grep -Eq ':(22)\b'; then
+        if active_listener_exists "22"; then
             register_issue "SVC-010" "SSH-Port aktiv" "WARNUNG" \
                 "SSH ist aktiv. Das ist normal, sollte aber gehaertet und geschuetzt werden." \
                 "SSH-Konfiguration, Fail2ban und Firewall-Regeln pruefen." "AUTO-SAFE" "yes"
@@ -25,14 +27,29 @@ run_service_checks() {
         fi
 
         if printf '%s\n' "${DETECTED_PROFILES[@]}" | grep -Eq 'Webserver|PHP Backend|Laravel|Symfony|WordPress|Reverse Proxy|Webmail Server'; then
-            if printf '%s\n' "$port_output" | grep -Eq ':(80|443)\b'; then
+            if active_listener_exists "80" || active_listener_exists "443"; then
                 ok "Web-Port 80/443 passend zum Webprofil erkannt."
             else
                 info "Kein direkter 80/443-Listener erkannt. Reverse-Proxy- oder Offload-Szenario moeglich."
             fi
         fi
 
-        if printf '%s\n' "$port_output" | grep -Eq ':(25)\b'; then
+        if [ -n "$LOCAL_WEB_URL" ]; then
+            local configured_backend_port
+            configured_backend_port="$(proxy_target_port "$LOCAL_WEB_URL")"
+            if [ -n "$configured_backend_port" ] && [ "$configured_backend_port" != "unix" ]; then
+                if active_listener_exists "$configured_backend_port" "local" || active_listener_exists "$configured_backend_port" "public"; then
+                    ok "LOCAL_WEB_URL-Backend lauscht auf Port $configured_backend_port."
+                else
+                    register_issue "SVC-014" "LOCAL_WEB_URL Backend nicht aktiv" "KRITISCH" \
+                        "Das konfigurierte LOCAL_WEB_URL-Backend auf Port $configured_backend_port wurde nicht als aktiver Listener erkannt." \
+                        "Backend-Dienst, Proxy-Ziel und Upstream-Konfiguration pruefen." "GUIDED" "no"
+                    bad "LOCAL_WEB_URL-Backend auf Port $configured_backend_port wurde nicht erkannt."
+                fi
+            fi
+        fi
+
+        if active_listener_exists "25"; then
             if printf '%s\n' "${DETECTED_PROFILES[@]}" | grep -Eq 'Mailcow Server|Mailserver'; then
                 ok "Port 25 passt zum Mailprofil."
             else
@@ -43,16 +60,63 @@ run_service_checks() {
             fi
         fi
 
-        if printf '%s\n' "$port_output" | grep -Eq ':(8088)\b'; then
-            if printf '%s\n' "${DETECTED_PROFILES[@]}" | grep -Eq 'Webmail Server|Reverse Proxy'; then
-                info "Port 8088 erkannt und wirkt profilbedingt plausibel."
-            else
-                register_issue "SVC-012" "Port 8088 aktiv" "WARNUNG" \
-                    "Port 8088 ist aktiv und sollte kontextabhaengig geprueft werden." \
-                    "Reverse-Proxy-, Webmail- oder Spezialdienst-Zweck manuell pruefen." "MANUAL" "no"
-                warn "Port 8088 aktiv."
-            fi
+        if active_listener_exists "8088"; then
+            info "Port 8088 ist aktiv und wird fuer spaetere Firewall-/Fix-Planung beibehalten."
         fi
+
+        local i public_port public_process public_bind recognized
+        for ((i=0; i<${#ACTIVE_LISTENER_PORTS[@]}; i++)); do
+            [ "${ACTIVE_LISTENER_EXPOSURES[$i]}" = "public" ] || continue
+            public_port="${ACTIVE_LISTENER_PORTS[$i]}"
+            public_process="${ACTIVE_LISTENER_PROCESSES[$i]}"
+            public_bind="${ACTIVE_LISTENER_BINDS[$i]}"
+            recognized=0
+
+            case "$public_port" in
+                22|25|80|110|143|443|465|587|993|995|4190)
+                    recognized=1
+                    ;;
+            esac
+
+            if [ -n "$WEB_PORT" ] && [ "$public_port" = "$WEB_PORT" ]; then
+                recognized=1
+            fi
+            if proxy_backend_port_exists "$public_port"; then
+                recognized=1
+            fi
+
+            case "$public_process" in
+                *nginx*|*apache2*|*httpd*|*php-fpm*|*caddy*|*node*|*gunicorn*|*uvicorn*|*docker-proxy*|*java*|*python*)
+                    recognized=1
+                    ;;
+            esac
+
+            [ "$recognized" -eq 1 ] && continue
+
+            register_issue "SVC-013" "Unerwarteter oeffentlicher Listener erkannt" "WARNUNG" \
+                "Ein zusaetzlicher oeffentlicher Listener wurde erkannt: ${public_bind}${public_process:+ ($public_process)}." \
+                "Pruefen, ob dieser Dienst absichtlich bereitgestellt wird. Wenn ja, muss der Port im Setup bewusst erhalten bleiben." "GUIDED" "no"
+            warn "Unerwarteter oeffentlicher Listener: ${public_bind}${public_process:+ ($public_process)}"
+        done
+
+        local local_backend_port checked_backend_ports=()
+        for local_backend_port in "${PROXY_BACKEND_PORTS[@]}"; do
+            case "$local_backend_port" in
+                ""|unix) continue ;;
+            esac
+            append_unique "$local_backend_port" "${checked_backend_ports[@]-}" && continue
+            checked_backend_ports+=("$local_backend_port")
+            if active_listener_exists "$local_backend_port" "local"; then
+                info "Proxy-Backend-Port $local_backend_port ist lokal aktiv."
+            elif active_listener_exists "$local_backend_port" "public"; then
+                warn "Proxy-Backend-Port $local_backend_port ist oeffentlich statt lokal gebunden."
+            else
+                register_issue "SVC-015" "Proxy-Backend-Ziel nicht erreichbar" "WARNUNG" \
+                    "Ein in nginx/Apache erkanntes Proxy-Backend auf Port $local_backend_port wurde nicht als aktiver Listener gefunden." \
+                    "Upstream-Dienst, Container oder Socket-Konfiguration pruefen." "GUIDED" "no"
+                warn "Erkanntes Proxy-Backend auf Port $local_backend_port wurde nicht gefunden."
+            fi
+        done
     else
         warn "ss ist nicht verfuegbar."
     fi
@@ -68,7 +132,7 @@ run_service_checks() {
             "Basisregeln setzen und Firewall bewusst aktivieren." "AUTO-SAFE" "yes"
         register_fix "FIX-UFW-001" "UFW Basisregeln anwenden" \
             "Firewall ist installiert, aber nicht aktiv oder nicht gehaertet" "AUTO-SAFE" "/etc/default/ufw, /etc/ufw/user.rules, /etc/ufw/user6.rules" \
-            "UFW Defaults setzen und profilbasierte Ports erlauben" "ufw status" "ufw enable" \
+            "UFW Defaults setzen und erkannte aktive Ports plus Profil-Ports erlauben" "ufw status" "ufw enable" \
             "UFW-Status erneut pruefen" "fix_setup_ufw" "WARNUNG"
         warn "UFW ist installiert, aber nicht aktiv."
     else

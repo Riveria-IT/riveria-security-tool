@@ -1,0 +1,78 @@
+Riveria Server Audit & Hardening Tool
+Version: 1.0.0-alpha
+Report-ID: SNAPSHOT-REVERSE-PROXY
+Datum: 2026-01-01 12:00:00 UTC
+Server: snapshot-host
+Score: 84/100
+Status: Gut
+Zusammenfassung: 0 OK, 4 Warnungen, 0 kritisch
+
+Erkannte Profile:
+- Webserver
+- Reverse Proxy
+
+Erkannte Komponenten:
+- nginx
+- apache
+
+Aktive Listener:
+- tcp 0.0.0.0:8088 [public] (users:(("docker-proxy",pid=1,fd=1)))
+- tcp 127.0.0.1:8088 [local] (users:(("node",pid=2,fd=1)))
+- tcp 127.0.0.1:9090 [local] (users:(("apache2",pid=3,fd=1)))
+
+Probleme:
+[WARNUNG] SVC-006 - UFW nicht aktiv
+  Beschreibung: UFW ist installiert, aber aktuell nicht aktiv.
+  Empfehlung: Basisregeln setzen und Firewall bewusst aktivieren.
+  Fix-Kategorie: AUTO-SAFE
+  Automatisch behebbar: yes
+[WARNUNG] SVC-002 - Fail2ban fehlt
+  Beschreibung: SSH- und Service-Bruteforce-Schutz ist nicht erkennbar.
+  Empfehlung: Fail2ban Installation pruefen.
+  Fix-Kategorie: AUTO-SAFE
+  Automatisch behebbar: yes
+[WARNUNG] SVC-009 - Apache und nginx gleichzeitig erkannt
+  Beschreibung: Beide Webserver-Komponenten wurden erkannt. Das kann gewollt sein, ist aber haeufig auf Altlasten zurueckzufuehren.
+  Empfehlung: Pruefen, ob Apache noch benoetigt wird. Sonst deaktivieren.
+  Fix-Kategorie: GUIDED
+  Automatisch behebbar: yes
+[WARNUNG] SVC-007 - nginx Security-Snippet fehlt
+  Beschreibung: Ein zentrales Riveria-Snippet fuer Security-Header und Dotfile-Schutz ist nicht vorhanden.
+  Empfehlung: Snippet erstellen und in einen passenden server-Block einbinden.
+  Fix-Kategorie: AUTO-SAFE
+  Automatisch behebbar: yes
+
+Fix-Vorschlaege:
+[AUTO-SAFE] FIX-UFW-001 - UFW Basisregeln anwenden
+  Risiko: Firewall ist installiert, aber nicht aktiv oder nicht gehaertet
+  Backup: /etc/default/ufw, /etc/ufw/user.rules, /etc/ufw/user6.rules
+  Geplanter Befehl: UFW Defaults setzen und erkannte aktive Ports plus Profil-Ports erlauben
+  Test: ufw status
+  Reload: ufw enable
+  Nachpruefung: UFW-Status erneut pruefen
+[AUTO-SAFE] FIX-F2B-001 - Fail2ban installieren
+  Risiko: Kein Brute-Force-Schutz erkannt
+  Backup: /etc/fail2ban/jail.local
+  Geplanter Befehl: apt-get install -y fail2ban
+  Test: systemctl is-active fail2ban
+  Reload: systemctl restart fail2ban
+  Nachpruefung: Fail2ban erneut erkennen
+[GUIDED] FIX-APACHE-001 - Apache deaktivieren falls ungenutzt
+  Risiko: Apache wirkt moeglicherweise wie eine unnoetige Altlast
+  Backup: systemctl stop/disable apache2
+  Geplanter Befehl: Apache stoppen und deaktivieren, Ports danach pruefen
+  Test: apache2ctl configtest
+  Reload: systemctl stop apache2
+  Nachpruefung: Portstatus erneut pruefen
+[AUTO-SAFE] FIX-NGX-001 - nginx Security-Snippet erstellen
+  Risiko: Sicherheitsheader oder Dotfile-Schutz sind nicht zentral hinterlegt
+  Backup: /etc/nginx/snippets/riveria-security-headers.conf
+  Geplanter Befehl: Snippet schreiben, sicher einbinden und nginx testen
+  Test: nginx -t
+  Reload: systemctl reload nginx
+  Nachpruefung: nginx-Konfiguration erneut pruefen
+
+Report-Pfade:
+- TXT: __REPORT_PATH__
+- JSON: __REPORT_PATH__
+- HTML: __REPORT_PATH__

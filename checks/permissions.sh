@@ -4,6 +4,8 @@ run_permission_checks() {
     section "Rechte & Besitzer"
     local registered_perm_fix=0
     local registered_world_fix=0
+    detect_webroots
+    print_webroot_summary
 
     local world_writable
     world_writable="$(find /var/www /srv /opt -xdev -perm -0002 -print 2>/dev/null | head -n 20 || true)"
@@ -28,9 +30,17 @@ run_permission_checks() {
                     600) ok ".env sicher: $file ($mode)" ;;
                     640) ok ".env gut: $file ($mode)" ;;
                     644)
-                        register_issue "PERM-002" ".env zu offen" "WARNUNG" \
-                            "Eine .env-Datei ist fuer andere lesbar." \
-                            "Auf 600 oder 640 reduzieren und Gruppenzuordnung pruefen." "AUTO-SAFE" "yes"
+                        if path_is_under_webroot "$file"; then
+                            register_issue "PERM-002" ".env im Webroot zu offen" "KRITISCH" \
+                                "Eine .env-Datei im erkannten Webroot ist fuer andere lesbar." \
+                                "Datei aus dem Webroot entfernen oder sofort auf 600/640 reduzieren." "AUTO-SAFE" "yes"
+                            bad ".env im Webroot mit offenen Rechten: $file ($mode)"
+                        else
+                            register_issue "PERM-002" ".env zu offen" "WARNUNG" \
+                                "Eine .env-Datei ist fuer andere lesbar." \
+                                "Auf 600 oder 640 reduzieren und Gruppenzuordnung pruefen." "AUTO-SAFE" "yes"
+                            warn ".env mit offenen Rechten: $file ($mode)"
+                        fi
                         if [ "$registered_perm_fix" -eq 0 ]; then
                             register_fix "FIX-PERM-001" "Sensible Dateirechte haerten" \
                                 ".env oder Konfigdateien haben zu offene Rechte" "AUTO-SAFE" "$file" \
@@ -38,7 +48,6 @@ run_permission_checks() {
                                 "Dateirechte erneut pruefen" "fix_permissions_basics" "WARNUNG"
                             registered_perm_fix=1
                         fi
-                        warn ".env mit offenen Rechten: $file ($mode)"
                         ;;
                     666|777)
                         register_issue "PERM-003" ".env kritisch offen" "KRITISCH" \
@@ -63,9 +72,17 @@ run_permission_checks() {
                 case "$mode" in
                     600|640) ok "Konfigdatei solide: $file ($mode)" ;;
                     644)
-                        register_issue "PERM-004" "Konfigdatei zu offen" "WARNUNG" \
-                            "Eine sensible Konfigurationsdatei ist fuer andere lesbar." \
-                            "Auf 600 oder 640 reduzieren." "AUTO-SAFE" "yes"
+                        if path_is_under_webroot "$file"; then
+                            register_issue "PERM-004" "Konfigdatei im Webroot zu offen" "KRITISCH" \
+                                "Eine sensible Konfigurationsdatei im erkannten Webroot ist fuer andere lesbar." \
+                                "Datei aus dem Webroot entfernen oder sofort auf 600/640 reduzieren." "AUTO-SAFE" "yes"
+                            bad "Konfigdatei im Webroot mit offenen Rechten: $file ($mode)"
+                        else
+                            register_issue "PERM-004" "Konfigdatei zu offen" "WARNUNG" \
+                                "Eine sensible Konfigurationsdatei ist fuer andere lesbar." \
+                                "Auf 600 oder 640 reduzieren." "AUTO-SAFE" "yes"
+                            warn "Konfigdatei mit offenen Rechten: $file ($mode)"
+                        fi
                         if [ "$registered_perm_fix" -eq 0 ]; then
                             register_fix "FIX-PERM-001" "Sensible Dateirechte haerten" \
                                 "Konfigurationsdateien haben zu offene Rechte" "AUTO-SAFE" "$file" \
@@ -73,7 +90,6 @@ run_permission_checks() {
                                 "Dateirechte erneut pruefen" "fix_permissions_basics" "WARNUNG"
                             registered_perm_fix=1
                         fi
-                        warn "Konfigdatei mit offenen Rechten: $file ($mode)"
                         ;;
                 esac
                 ;;
@@ -106,6 +122,15 @@ run_permission_checks() {
     local sensitive_world
     sensitive_world="$(find /var/www /srv /opt -xdev -type f -perm -0002 \( -name '.env' -o -name 'wp-config.php' -o -name 'config.php' -o -name 'config.inc.php' -o -name 'database.php' -o -name 'settings.php' -o -name 'id_rsa' -o -name '*.pem' -o -name '*.key' \) 2>/dev/null | head -n 20 || true)"
     if [ -n "$sensitive_world" ]; then
+        local sensitive_world_in_webroot=""
+        while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            if path_is_under_webroot "$file"; then
+                sensitive_world_in_webroot="${sensitive_world_in_webroot}${file}"$'\n'
+            fi
+        done <<EOF
+$sensitive_world
+EOF
         register_issue "PERM-006" "Sensible Dateien world-writable" "KRITISCH" \
             "Mindestens eine sensible Datei ist fuer andere beschreibbar." \
             "Other-write entfernen und Besitz pruefen." "AUTO-SAFE" "yes"
@@ -116,7 +141,11 @@ run_permission_checks() {
                 "Dateirechte erneut pruefen" "fix_permissions_world_writable_configs" "KRITISCH"
             registered_world_fix=1
         fi
-        bad "Sensible world-writable Dateien gefunden."
+        if [ -n "$sensitive_world_in_webroot" ]; then
+            bad "Sensible world-writable Dateien im Webroot gefunden."
+        else
+            bad "Sensible world-writable Dateien gefunden."
+        fi
         printf '%s\n' "$sensitive_world"
     fi
 }

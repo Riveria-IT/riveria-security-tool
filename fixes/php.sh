@@ -23,6 +23,15 @@ fix_harden_php() {
         return
     fi
 
+    if dry_run_enabled; then
+        for ini in "${ini_files[@]}"; do
+            dry_run_info "PHP-Haertung wuerde geschrieben: $ini"
+            dry_run_info "Direktiven: expose_php Off, display_errors Off, log_errors On, session.cookie_secure 1, session.cookie_httponly 1, session.cookie_samesite Lax, session.use_strict_mode 1, session.use_only_cookies 1"
+        done
+        dry_run_info "Anschliessend wuerde PHP je Datei validiert und aktive PHP-/Webserver-Dienste neu geladen."
+        return
+    fi
+
     local backups=()
     for ini in "${ini_files[@]}"; do
         local backup

@@ -1,0 +1,28 @@
+{
+  "tool": "Riveria Server Audit & Hardening Tool",
+  "version": "1.0.0-alpha",
+  "report_id": "SNAPSHOT-WEBSERVER",
+  "date": "2026-01-01T12:10:00+0000",
+  "server": "snapshot-host",
+  "score": 88,
+  "status": "Gut",
+  "summary": {"ok": 0, "warnings": 3, "critical": 0},
+  "test_modes": {"full_audit":"nicht getestet","active_safe":"nicht getestet","lab_local":"nicht getestet"},
+  "profiles": ["Webserver"],
+  "components": ["nginx"],
+  "active_listeners": [
+  ],
+  "active_tests": [
+
+  ],
+  "issues": [
+    {"id":"SVC-006","title":"UFW nicht aktiv","level":"WARNUNG","description":"UFW ist installiert, aber aktuell nicht aktiv.","recommendation":"Basisregeln setzen und Firewall bewusst aktivieren.","fix_category":"AUTO-SAFE","can_fix":"yes"},
+    {"id":"SVC-002","title":"Fail2ban fehlt","level":"WARNUNG","description":"SSH- und Service-Bruteforce-Schutz ist nicht erkennbar.","recommendation":"Fail2ban Installation pruefen.","fix_category":"AUTO-SAFE","can_fix":"yes"},
+    {"id":"SVC-007","title":"nginx Security-Snippet fehlt","level":"WARNUNG","description":"Ein zentrales Riveria-Snippet fuer Security-Header und Dotfile-Schutz ist nicht vorhanden.","recommendation":"Snippet erstellen und in einen passenden server-Block einbinden.","fix_category":"AUTO-SAFE","can_fix":"yes"}
+  ],
+  "fix_suggestions": [
+    {"id":"FIX-UFW-001","title":"UFW Basisregeln anwenden","risk":"Firewall ist installiert, aber nicht aktiv oder nicht gehaertet","category":"AUTO-SAFE","backup":"/etc/default/ufw, /etc/ufw/user.rules, /etc/ufw/user6.rules","command":"UFW Defaults setzen und erkannte aktive Ports plus Profil-Ports erlauben","test":"ufw status","reload":"ufw enable","recheck":"UFW-Status erneut pruefen"},
+    {"id":"FIX-F2B-001","title":"Fail2ban installieren","risk":"Kein Brute-Force-Schutz erkannt","category":"AUTO-SAFE","backup":"/etc/fail2ban/jail.local","command":"apt-get install -y fail2ban","test":"systemctl is-active fail2ban","reload":"systemctl restart fail2ban","recheck":"Fail2ban erneut erkennen"},
+    {"id":"FIX-NGX-001","title":"nginx Security-Snippet erstellen","risk":"Sicherheitsheader oder Dotfile-Schutz sind nicht zentral hinterlegt","category":"AUTO-SAFE","backup":"/etc/nginx/snippets/riveria-security-headers.conf","command":"Snippet schreiben, sicher einbinden und nginx testen","test":"nginx -t","reload":"systemctl reload nginx","recheck":"nginx-Konfiguration erneut pruefen"}
+  ]
+}

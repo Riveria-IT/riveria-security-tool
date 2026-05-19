@@ -65,7 +65,7 @@ install_launcher() {
 }
 
 main() {
-    printf 'Riveria Server Audit & Hardening Tool wird heruntergeladen...\n'
+    printf 'Riveria wird jetzt heruntergeladen und eingerichtet...\n'
     download_archive
 
     mkdir -p "$EXTRACT_DIR"
@@ -81,12 +81,18 @@ main() {
 
     install_launcher
 
-    printf '\nNaechste Schritte:\n'
+    printf '\nEmpfohlener einfacher Start:\n'
+    printf '1. sudo riveria-security-tool\n'
+    printf '2. im Menue: 20) Einsteiger-Modus (einfach gefuehrt)\n'
+    printf '3. bei der Vorschau-Frage zuerst Ja waehlen\n'
+
+    printf '\nWenn du lieber direkt im Projektordner startest:\n'
     printf '1. cd "%s"\n' "$TARGET_DIR"
     printf '2. cp config.example.conf config.conf\n'
-    printf '3. sudo bash ./riveria-security-tool.sh\n'
-    printf '\nOder direkt ueber den Launcher:\n'
-    printf 'sudo riveria-security-tool\n'
+    printf '3. sudo -E bash ./riveria-security-tool.sh\n'
+
+    printf '\nSicherer Vorschau-Start ohne echte Aenderungen:\n'
+    printf 'DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E riveria-security-tool\n'
 }
 
 main "$@"

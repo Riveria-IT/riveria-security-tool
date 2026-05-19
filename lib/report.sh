@@ -62,11 +62,36 @@ json_array_from_lines() {
     local first=1 item
     printf '['
     for item in "$@"; do
+        [ -n "$item" ] || continue
         [ $first -eq 0 ] && printf ','
         printf '"%s"' "$(json_escape "$item")"
         first=0
     done
     printf ']'
+}
+
+issue_id_has_prefix() {
+    local issue_id="$1"
+    local prefix="$2"
+    case "$issue_id" in
+        "$prefix"*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+count_issues_by_prefix() {
+    local prefix="$1"
+    local count=0 i
+    for ((i=0; i<${#ISSUE_IDS[@]}; i++)); do
+        issue_id_has_prefix "${ISSUE_IDS[$i]}" "$prefix" && count=$((count + 1))
+    done
+    printf '%s' "$count"
+}
+
+print_test_mode_status_lines() {
+    printf -- '- Vollaudit: %s\n' "$AUDIT_MODE_FULL_STATUS"
+    printf -- '- Aktive Sicherheitspruefung (safe): %s\n' "$AUDIT_MODE_ACTIVE_SAFE_STATUS"
+    printf -- '- Lab-Validierungsmodus (lokal): %s\n' "$AUDIT_MODE_LAB_LOCAL_STATUS"
 }
 
 generate_txt_report() {
@@ -83,6 +108,8 @@ generate_txt_report() {
         printf 'Score: %s/100\n' "$SCORE"
         printf 'Status: %s\n' "$STATUS_LABEL"
         printf 'Zusammenfassung: %s OK, %s Warnungen, %s kritisch\n' "$OK_COUNT" "$WARN_COUNT" "$CRIT_COUNT"
+        printf '\nPruefarten:\n'
+        print_test_mode_status_lines
         printf '\nErkannte Profile:\n'
         if [ "${#DETECTED_PROFILES[@]}" -gt 0 ]; then
             print_array_lines "${DETECTED_PROFILES[@]}"
@@ -95,17 +122,43 @@ generate_txt_report() {
         else
             printf -- '- Keine Komponenten erkannt\n'
         fi
+        printf '\nAktive Listener:\n'
+        if [ "${#ACTIVE_LISTENER_PROTOCOLS[@]}" -gt 0 ]; then
+            local k process_suffix
+            for ((k=0; k<${#ACTIVE_LISTENER_PROTOCOLS[@]}; k++)); do
+                process_suffix=""
+                [ -n "${ACTIVE_LISTENER_PROCESSES[$k]}" ] && process_suffix=" (${ACTIVE_LISTENER_PROCESSES[$k]})"
+                printf -- '- %s %s [%s]%s\n' \
+                    "${ACTIVE_LISTENER_PROTOCOLS[$k]}" \
+                    "${ACTIVE_LISTENER_BINDS[$k]}" \
+                    "${ACTIVE_LISTENER_EXPOSURES[$k]}" \
+                    "$process_suffix"
+            done
+        else
+            printf -- '- Keine Listener erkannt\n'
+        fi
         printf '\nProbleme:\n'
-        if [ "${#ISSUE_IDS[@]}" -eq 0 ]; then
+        if [ "${#ISSUE_IDS[@]}" -eq 0 ] || [ "${#ISSUE_IDS[@]}" -eq "$(count_issues_by_prefix 'ACT-')" ]; then
             printf -- '- Keine Probleme registriert\n'
         else
             local i
             for ((i=0; i<${#ISSUE_IDS[@]}; i++)); do
+                issue_id_has_prefix "${ISSUE_IDS[$i]}" 'ACT-' && continue
                 printf '[%s] %s - %s\n' "${ISSUE_LEVELS[$i]}" "${ISSUE_IDS[$i]}" "${ISSUE_TITLES[$i]}"
                 printf '  Beschreibung: %s\n' "${ISSUE_DESCRIPTIONS[$i]}"
                 printf '  Empfehlung: %s\n' "${ISSUE_RECOMMENDATIONS[$i]}"
                 printf '  Fix-Kategorie: %s\n' "${ISSUE_FIX_CATEGORIES[$i]}"
                 printf '  Automatisch behebbar: %s\n' "${ISSUE_CAN_FIX[$i]}"
+            done
+        fi
+        if [ "$(count_issues_by_prefix 'ACT-')" -gt 0 ]; then
+            printf '\nAktive Tests:\n'
+            local a
+            for ((a=0; a<${#ISSUE_IDS[@]}; a++)); do
+                issue_id_has_prefix "${ISSUE_IDS[$a]}" 'ACT-' || continue
+                printf '[%s] %s - %s\n' "${ISSUE_LEVELS[$a]}" "${ISSUE_IDS[$a]}" "${ISSUE_TITLES[$a]}"
+                printf '  Beschreibung: %s\n' "${ISSUE_DESCRIPTIONS[$a]}"
+                printf '  Empfehlung: %s\n' "${ISSUE_RECOMMENDATIONS[$a]}"
             done
         fi
         printf '\nFix-Vorschlaege:\n'
@@ -147,8 +200,38 @@ generate_json_report() {
         printf '  "score": %s,\n' "$SCORE"
         printf '  "status": "%s",\n' "$(json_escape "$STATUS_LABEL")"
         printf '  "summary": {"ok": %s, "warnings": %s, "critical": %s},\n' "$OK_COUNT" "$WARN_COUNT" "$CRIT_COUNT"
-        printf '  "profiles": %s,\n' "$(json_array_from_lines "${DETECTED_PROFILES[@]}")"
-        printf '  "components": %s,\n' "$(json_array_from_lines "${DETECTED_COMPONENTS[@]}")"
+        printf '  "test_modes": {"full_audit":"%s","active_safe":"%s","lab_local":"%s"},\n' \
+            "$(json_escape "$AUDIT_MODE_FULL_STATUS")" \
+            "$(json_escape "$AUDIT_MODE_ACTIVE_SAFE_STATUS")" \
+            "$(json_escape "$AUDIT_MODE_LAB_LOCAL_STATUS")"
+        printf '  "profiles": %s,\n' "$(json_array_from_lines "${DETECTED_PROFILES[@]-}")"
+        printf '  "components": %s,\n' "$(json_array_from_lines "${DETECTED_COMPONENTS[@]-}")"
+        printf '  "active_listeners": [\n'
+        local l
+        for ((l=0; l<${#ACTIVE_LISTENER_PROTOCOLS[@]}; l++)); do
+            printf '    {"protocol":"%s","bind":"%s","exposure":"%s","process":"%s"}' \
+                "$(json_escape "${ACTIVE_LISTENER_PROTOCOLS[$l]}")" \
+                "$(json_escape "${ACTIVE_LISTENER_BINDS[$l]}")" \
+                "$(json_escape "${ACTIVE_LISTENER_EXPOSURES[$l]}")" \
+                "$(json_escape "${ACTIVE_LISTENER_PROCESSES[$l]}")"
+            [ "$l" -lt $((${#ACTIVE_LISTENER_PROTOCOLS[@]} - 1)) ] && printf ','
+            printf '\n'
+        done
+        printf '  ],\n'
+        printf '  "active_tests": [\n'
+        local a active_test_written=0
+        for ((a=0; a<${#ISSUE_IDS[@]}; a++)); do
+            issue_id_has_prefix "${ISSUE_IDS[$a]}" 'ACT-' || continue
+            [ "$active_test_written" -eq 1 ] && printf ',\n'
+            printf '    {"id":"%s","title":"%s","level":"%s","description":"%s","recommendation":"%s"}' \
+                "$(json_escape "${ISSUE_IDS[$a]}")" \
+                "$(json_escape "${ISSUE_TITLES[$a]}")" \
+                "$(json_escape "${ISSUE_LEVELS[$a]}")" \
+                "$(json_escape "${ISSUE_DESCRIPTIONS[$a]}")" \
+                "$(json_escape "${ISSUE_RECOMMENDATIONS[$a]}")"
+            active_test_written=1
+        done
+        printf '\n  ],\n'
         printf '  "issues": [\n'
         local i
         for ((i=0; i<${#ISSUE_IDS[@]}; i++)); do
@@ -223,6 +306,10 @@ generate_html_report() {
         printf '<section class="grid">'
         printf '<div class="card"><h2>Score</h2><div class="score">%s</div><div>von 100 Punkten</div></div>' "$(html_escape "$SCORE")"
         printf '<div class="card"><h2>Zusammenfassung</h2><ul class="list"><li>OK: %s</li><li>Warnungen: %s</li><li>Kritisch: %s</li></ul></div>' "$OK_COUNT" "$WARN_COUNT" "$CRIT_COUNT"
+        printf '<div class="card"><h2>Pruefarten</h2><ul class="list"><li>Vollaudit: %s</li><li>Aktive Sicherheitspruefung: %s</li><li>Lab-Validierungsmodus: %s</li></ul></div>' \
+            "$(html_escape "$AUDIT_MODE_FULL_STATUS")" \
+            "$(html_escape "$AUDIT_MODE_ACTIVE_SAFE_STATUS")" \
+            "$(html_escape "$AUDIT_MODE_LAB_LOCAL_STATUS")"
         printf '<div class="card"><h2>Profile</h2><ul class="list">'
         local item
         if [ "${#DETECTED_PROFILES[@]}" -eq 0 ]; then
@@ -241,7 +328,38 @@ generate_html_report() {
                 printf '<li>%s</li>' "$(html_escape "$item")"
             done
         fi
+        printf '</ul></div>'
+        printf '<div class="card"><h2>Aktive Listener</h2><ul class="list">'
+        if [ "${#ACTIVE_LISTENER_PROTOCOLS[@]}" -eq 0 ]; then
+            printf '<li>Keine Listener erkannt</li>'
+        else
+            local k process_suffix
+            for ((k=0; k<${#ACTIVE_LISTENER_PROTOCOLS[@]}; k++)); do
+                process_suffix=""
+                [ -n "${ACTIVE_LISTENER_PROCESSES[$k]}" ] && process_suffix=" (${ACTIVE_LISTENER_PROCESSES[$k]})"
+                printf '<li>%s %s [%s]%s</li>' \
+                    "$(html_escape "${ACTIVE_LISTENER_PROTOCOLS[$k]}")" \
+                    "$(html_escape "${ACTIVE_LISTENER_BINDS[$k]}")" \
+                    "$(html_escape "${ACTIVE_LISTENER_EXPOSURES[$k]}")" \
+                    "$(html_escape "$process_suffix")"
+            done
+        fi
         printf '</ul></div></section>'
+
+        if [ "$(count_issues_by_prefix 'ACT-')" -gt 0 ]; then
+            printf '<section class="card"><h2>Aktive Tests</h2>'
+            local a
+            for ((a=0; a<${#ISSUE_IDS[@]}; a++)); do
+                issue_id_has_prefix "${ISSUE_IDS[$a]}" 'ACT-' || continue
+                printf '<article class="finding %s">' "$(status_css_class "${ISSUE_LEVELS[$a]}")"
+                printf '<div class="pill %s">%s</div>' "$(status_css_class "${ISSUE_LEVELS[$a]}")" "$(html_escape "${ISSUE_LEVELS[$a]}")"
+                printf '<h3>%s · %s</h3>' "$(html_escape "${ISSUE_IDS[$a]}")" "$(html_escape "${ISSUE_TITLES[$a]}")"
+                printf '<p><strong>Beschreibung:</strong> %s</p>' "$(html_escape "${ISSUE_DESCRIPTIONS[$a]}")"
+                printf '<p><strong>Empfehlung:</strong> %s</p>' "$(html_escape "${ISSUE_RECOMMENDATIONS[$a]}")"
+                printf '</article>'
+            done
+            printf '</section>'
+        fi
 
         printf '<section class="card"><h2>Probleme</h2>'
         if [ "${#ISSUE_IDS[@]}" -eq 0 ]; then
@@ -249,6 +367,7 @@ generate_html_report() {
         else
             local i
             for ((i=0; i<${#ISSUE_IDS[@]}; i++)); do
+                issue_id_has_prefix "${ISSUE_IDS[$i]}" 'ACT-' && continue
                 printf '<article class="finding %s">' "$(status_css_class "${ISSUE_LEVELS[$i]}")"
                 printf '<div class="pill %s">%s</div>' "$(status_css_class "${ISSUE_LEVELS[$i]}")" "$(html_escape "${ISSUE_LEVELS[$i]}")"
                 printf '<h3>%s · %s</h3>' "$(html_escape "${ISSUE_IDS[$i]}")" "$(html_escape "${ISSUE_TITLES[$i]}")"

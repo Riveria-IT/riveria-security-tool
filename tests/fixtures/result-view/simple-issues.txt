@@ -1,0 +1,10 @@
+
+== Findings ==
+[GELB] Die Firewall ist vorhanden, aber noch nicht aktiv.
+  Prioritaet: bald pruefen
+  Naechster Schritt: Firewall-Regeln pruefen und bewusst aktivieren.
+  Fix-Typ: Sicherer Auto-Fix | Direkt machbar: ja
+[ROT] Ein internes Web-Backend antwortet aktuell nicht.
+  Prioritaet: sofort wichtig
+  Naechster Schritt: Internen Dienst oder Proxy-Ziel pruefen.
+  Fix-Typ: Gefuehrter Fix | Direkt machbar: nein

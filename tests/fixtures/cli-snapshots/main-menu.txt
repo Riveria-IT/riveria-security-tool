@@ -1,0 +1,36 @@
+
+Riveria Server Audit & Hardening Tool
+Version: 1.0.0-alpha
+
+[INFO] Neu hier? Starte am besten mit 20) Einsteiger-Modus.
+1) Vollstaendigen Sicherheitscheck ausfuehren
+2) Serverrolle automatisch erkennen
+3) Gefundene Probleme direkt beheben
+4) Webapps / Kontaktformulare pruefen
+5) Code Security pruefen
+6) Sensible Dateien / Leaks pruefen
+7) Rechte & Besitzer pruefen
+8) Docker / Mailcow pruefen
+9) Mailserver pruefen
+10) SSL / DNS pruefen
+11) Systemupdates installieren
+12) UFW Firewall Basis setzen
+13) Fail2ban installieren/aktivieren
+14) SSH vorsichtig haerten
+15) PHP haerten
+16) nginx Security-Header-Snippet erstellen
+17) Reports anzeigen
+18) Einstellungen anzeigen
+19) Dry-Run-Modus umschalten
+    zeigt nur eine sichere Vorschau und aendert nichts
+20) Einsteiger-Modus (einfach gefuehrt)
+    empfohlen fuer neue Nutzer mit einfacher Sprache und Schritt-fuer-Schritt-Hilfe
+21) Ergebnis-Sprache umschalten
+    wechselt zwischen einfacher Erklaerung und technischer Ansicht
+22) Aktive Sicherheitspruefung (safe)
+    sendet nur kontrollierte Lese-Requests an die konfigurierte PUBLIC_WEB_URL
+23) Lab-Validierungsmodus (nur lokal)
+    erweitert die Web-Probes fuer localhost, aber weiterhin ohne destruktive Angriffe
+0) Beenden
+
+Auswahl:

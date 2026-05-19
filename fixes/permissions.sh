@@ -25,6 +25,16 @@ permissions_collect_sensitive_files() {
     done
 }
 
+permissions_collect_sensitive_files_in_webroot() {
+    local file
+    detect_webroots
+    while IFS= read -r file; do
+        [ -n "$file" ] || continue
+        path_is_under_webroot "$file" || continue
+        printf '%s\n' "$file"
+    done < <(permissions_collect_sensitive_files)
+}
+
 permissions_desired_mode() {
     local file="$1"
     case "$(basename "$file")" in
@@ -117,11 +127,16 @@ fix_permissions_basics() {
     need_root
 
     local files=()
+    local webroot_files=()
     local file
     while IFS= read -r file; do
         [ -n "$file" ] || continue
         append_unique "$file" "${files[@]}" || files+=("$file")
     done < <(permissions_collect_sensitive_files)
+    while IFS= read -r file; do
+        [ -n "$file" ] || continue
+        append_unique "$file" "${webroot_files[@]}" || webroot_files+=("$file")
+    done < <(permissions_collect_sensitive_files_in_webroot)
 
     if [ "${#files[@]}" -eq 0 ]; then
         info "Keine sensiblen Dateien in den Standardsuchpfaden gefunden."
@@ -130,11 +145,23 @@ fix_permissions_basics() {
 
     info "Gepruefte sensible Dateien:"
     print_array_lines "${files[@]}"
+    if [ "${#webroot_files[@]}" -gt 0 ]; then
+        warn "Ein Teil der sensiblen Dateien liegt im erkannten Webroot."
+        print_array_lines "${webroot_files[@]}"
+        info "Der Fix haertet nur Dateirechte. Fuer Webroot-Dateien sollte zusaetzlich die Verzeichnisstruktur bereinigt werden."
+    fi
 
     confirm_fix_action "Sensible Dateirechte gezielt haerten?" || {
         info "Rechte-Fix abgebrochen."
         return
     }
+
+    if dry_run_enabled; then
+        for file in "${files[@]}"; do
+            dry_run_info "Dateirechte wuerden angepasst: $file -> $(permissions_desired_mode "$file")"
+        done
+        return
+    fi
 
     for file in "${files[@]}"; do
         permissions_fix_mode_for_file "$file" || return
@@ -148,6 +175,7 @@ fix_permissions_world_writable_configs() {
     need_root
 
     local files=()
+    local webroot_files=()
     local file
     while IFS= read -r file; do
         [ -n "$file" ] || continue
@@ -162,11 +190,26 @@ fix_permissions_world_writable_configs() {
 
     info "Betroffene sensible Dateien:"
     print_array_lines "${files[@]}"
+    for file in "${files[@]}"; do
+        path_is_under_webroot "$file" || continue
+        append_unique "$file" "${webroot_files[@]}" || webroot_files+=("$file")
+    done
+    if [ "${#webroot_files[@]}" -gt 0 ]; then
+        warn "World-writable Dateien im Webroot erkannt."
+        print_array_lines "${webroot_files[@]}"
+    fi
 
     confirm_fix_action "Other-write auf sensiblen Dateien entfernen?" || {
         info "World-writable-Fix abgebrochen."
         return
     }
+
+    if dry_run_enabled; then
+        for file in "${files[@]}"; do
+            dry_run_info "Other-write wuerde entfernt: $file"
+        done
+        return
+    fi
 
     for file in "${files[@]}"; do
         permissions_fix_sensitive_world_writable "$file" || return

@@ -1,0 +1,2 @@
+web nginx 0.0.0.0:8088->8088/tcp
+admin adminer 0.0.0.0:9000->8080/tcp

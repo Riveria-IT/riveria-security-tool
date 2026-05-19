@@ -1,0 +1,21 @@
+
+== Einfacher Fix-Assistent ==
+1) Nur sichere automatische Fixes anwenden (empfohlen)
+2) Alle Fix-Vorschlaege einfach erklaert anzeigen
+3) Erweiterten Fix-Assistenten oeffnen
+0) Zurueck
+
+Auswahl:
+== Einfache Fix-Hilfe ==
+1) UFW Basisregeln anwenden [AUTO-SAFE]
+   Warum: Die Firewall-Grundregeln sollen gesetzt werden, damit unnoetige Ports nicht offen bleiben.
+   Danach pruefen: ufw status
+2) SSH Root-Login deaktivieren [GUIDED]
+   Warum: Der SSH-Zugang soll sicherer werden, ohne bestehende Nutzer auszusperren.
+   Danach pruefen: sshd -t
+1) Nur sichere automatische Fixes anwenden (empfohlen)
+2) Alle Fix-Vorschlaege einfach erklaert anzeigen
+3) Erweiterten Fix-Assistenten oeffnen
+0) Zurueck
+
+Auswahl:

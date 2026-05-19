@@ -1,0 +1,23 @@
+
+[1m== Fix-Auswahl ==[0m
+1) UFW Basisregeln anwenden [AUTO-SAFE]
+2) Stub-Fix ausfuehren [AUTO-SAFE]
+0) Zurueck
+
+Auswahl: 
+[1mSchritt 2 von 2: Stub-Fix ausfuehren[0m
+Problem:         Kontrollierter Testlauf fuer den Fix-Assistenten
+Kategorie:       AUTO-SAFE
+Backup:          /tmp/stub-backup
+Test:            echo stub-test
+Reload:          echo stub-reload
+Nachpruefung:    Stub erneut pruefen
+Fortfahren? [y/N] [34m[INFO][0m Stub-Fix ausgefuehrt.
+[34m[INFO][0m Fix-Assistent-Modus: 1
+
+[1m== Fix-Auswahl ==[0m
+1) UFW Basisregeln anwenden [AUTO-SAFE]
+2) Stub-Fix ausfuehren [AUTO-SAFE]
+0) Zurueck
+
+Auswahl: 

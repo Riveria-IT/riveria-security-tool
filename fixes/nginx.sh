@@ -158,6 +158,17 @@ fix_create_nginx_security_headers() {
         return
     }
 
+    if dry_run_enabled; then
+        dry_run_info "Snippet wuerde geschrieben: $snippet_file"
+        if [ -n "$target_file" ]; then
+            dry_run_info "Include wuerde eingefuegt: $target_file"
+        else
+            dry_run_info "Include muesste manuell gesetzt werden: include $snippet_file;"
+        fi
+        dry_run_info "Anschliessend wuerde 'nginx -t' und ein Reload von nginx erfolgen."
+        return
+    fi
+
     if [ -f "$snippet_file" ]; then
         snippet_backup="$(safe_backup "$snippet_file")" || {
             bad "Backup fehlgeschlagen: $snippet_file"

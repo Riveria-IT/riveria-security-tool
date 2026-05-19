@@ -21,6 +21,19 @@ build_ufw_port_plan() {
         ports+=("${WEB_PORT}/tcp")
     fi
 
+    detect_active_listeners
+
+    local i dynamic_rule
+    for ((i=0; i<${#ACTIVE_LISTENER_PORTS[@]}; i++)); do
+        [ "${ACTIVE_LISTENER_EXPOSURES[$i]}" = "public" ] || continue
+        case "${ACTIVE_LISTENER_PROTOCOLS[$i]}" in
+            tcp|udp)
+                dynamic_rule="${ACTIVE_LISTENER_PORTS[$i]}/${ACTIVE_LISTENER_PROTOCOLS[$i]}"
+                ports+=("$dynamic_rule")
+                ;;
+        esac
+    done
+
     local unique=()
     local port
     for port in "${ports[@]}"; do
@@ -46,6 +59,7 @@ show_ufw_plan() {
     else
         info "Geplante Freigaben:"
         print_array_lines "${ports[@]}"
+        info "Aktive oeffentliche Listener werden automatisch in den Plan uebernommen, damit genutzte Ports nicht versehentlich blockiert werden."
     fi
 }
 
@@ -56,6 +70,7 @@ fix_setup_ufw() {
     if [ "${#DETECTED_PROFILES[@]}" -eq 0 ] && [ "${#DETECTED_COMPONENTS[@]}" -eq 0 ]; then
         detect_services >/dev/null 2>&1
     fi
+    detect_active_listeners
 
     if ! cmd_exists ufw; then
         bad "ufw ist nicht installiert."
@@ -73,6 +88,15 @@ fix_setup_ufw() {
         info "UFW-Konfiguration abgebrochen."
         return
     }
+
+    if dry_run_enabled; then
+        dry_run_info "UFW-Defaults wuerden auf 'deny incoming' und 'allow outgoing' gesetzt."
+        for port in "${ports[@]}"; do
+            dry_run_info "UFW-Regel wuerde freigegeben: $port"
+        done
+        dry_run_info "UFW wuerde aktiviert und der Status anschliessend geprueft."
+        return
+    fi
 
     local backup_files=("/etc/default/ufw" "/etc/ufw/user.rules" "/etc/ufw/user6.rules")
     local file backup backups=()

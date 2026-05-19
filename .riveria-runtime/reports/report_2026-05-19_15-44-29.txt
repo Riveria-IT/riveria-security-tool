@@ -1,0 +1,45 @@
+Riveria Server Audit & Hardening Tool
+Version: 1.0.0-alpha
+Report-ID: 2026-05-19_15-44-29
+Datum: 2026-05-19 15:44:29 CEST
+Server: Michaels-Mac-mini.local
+Score: 84/100
+Status: Gut
+Zusammenfassung: 0 OK, 1 Warnungen, 1 kritisch
+
+Erkannte Profile:
+- Webserver
+- Reverse Proxy
+
+Erkannte Komponenten:
+- nginx
+- php-fpm
+
+Aktive Listener:
+- Keine Listener erkannt
+
+Probleme:
+[WARNUNG] DEMO-001 - Demo-Warnung
+  Beschreibung: Dies ist ein kuenstlicher Testfund fuer die Report-Generierung.
+  Empfehlung: Nur als Smoke-Test verwenden.
+  Fix-Kategorie: AUTO-SAFE
+  Automatisch behebbar: yes
+[KRITISCH] DEMO-002 - Demo-Kritisch
+  Beschreibung: Dies ist ein kuenstlicher kritischer Testfund fuer die HTML- und JSON-Ausgabe.
+  Empfehlung: Nur als Smoke-Test verwenden.
+  Fix-Kategorie: GUIDED
+  Automatisch behebbar: no
+
+Fix-Vorschlaege:
+[AUTO-SAFE] FIX-DEMO-001 - Demo-Fix
+  Risiko: Kuenstlicher Testfix fuer Reporting und Assistent
+  Backup: /tmp/demo.backup
+  Geplanter Befehl: echo demo
+  Test: true
+  Reload: none
+  Nachpruefung: demo-recheck
+
+Report-Pfade:
+- TXT:  /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/reports/report_2026-05-19_15-44-29.txt
+- JSON: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/reports/report_2026-05-19_15-44-29.json
+- HTML: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/reports/report_2026-05-19_15-44-29.html

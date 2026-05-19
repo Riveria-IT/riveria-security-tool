@@ -1,0 +1,27 @@
+{
+  "tool": "Riveria Server Audit & Hardening Tool",
+  "version": "1.0.0-alpha",
+  "report_id": "2026-05-19_15-55-40",
+  "date": "2026-05-19T15:55:40+0200",
+  "server": "Michaels-Mac-mini.local",
+  "score": 88,
+  "status": "Gut",
+  "summary": {"ok": 0, "warnings": 3, "critical": 0},
+  "test_modes": {"full_audit":"nicht getestet","active_safe":"nicht getestet","lab_local":"ausgefuehrt"},
+  "profiles": [],
+  "components": [],
+  "active_listeners": [
+  ],
+  "active_tests": [
+    {"id":"ACT-010","title":"Lokale Debug- oder Hilfspfade reagieren im Lab-Modus","level":"WARNUNG","description":"Im lokalen Lab-Modus reagierten typische Debug-, Actuator- oder Doku-Pfade direkt.","recommendation":"Debug-Werkzeuge, Swagger, Actuator oder Entwicklerhilfen fuer Produktion und Reverse Proxy bewusst absichern."},
+    {"id":"ACT-011","title":"Zusatzmethoden reagieren im lokalen Lab-Modus","level":"WARNUNG","description":"Im lokalen Lab-Modus antworteten zusaetzliche HTTP-Methoden wie OPTIONS erfolgreich.","recommendation":"Erlaubte Methoden, CORS, Reverse-Proxy-Weiterleitung und App-Router bewusst pruefen."},
+    {"id":"ACT-012","title":"Lokaler Lab-Modus erzeugt unerwartete Fehlerantworten","level":"WARNUNG","description":"Einige lokale Sonderpfade oder Methoden fuehrten zu 5xx-Antworten statt zu einer sauberen Ablehnung.","recommendation":"Error-Handling, Router-Schutz und Reverse-Proxy-Regeln fuer Sonderpfade pruefen."}
+  ],
+  "issues": [
+    {"id":"ACT-010","title":"Lokale Debug- oder Hilfspfade reagieren im Lab-Modus","level":"WARNUNG","description":"Im lokalen Lab-Modus reagierten typische Debug-, Actuator- oder Doku-Pfade direkt.","recommendation":"Debug-Werkzeuge, Swagger, Actuator oder Entwicklerhilfen fuer Produktion und Reverse Proxy bewusst absichern.","fix_category":"MANUAL","can_fix":"no"},
+    {"id":"ACT-011","title":"Zusatzmethoden reagieren im lokalen Lab-Modus","level":"WARNUNG","description":"Im lokalen Lab-Modus antworteten zusaetzliche HTTP-Methoden wie OPTIONS erfolgreich.","recommendation":"Erlaubte Methoden, CORS, Reverse-Proxy-Weiterleitung und App-Router bewusst pruefen.","fix_category":"MANUAL","can_fix":"no"},
+    {"id":"ACT-012","title":"Lokaler Lab-Modus erzeugt unerwartete Fehlerantworten","level":"WARNUNG","description":"Einige lokale Sonderpfade oder Methoden fuehrten zu 5xx-Antworten statt zu einer sauberen Ablehnung.","recommendation":"Error-Handling, Router-Schutz und Reverse-Proxy-Regeln fuer Sonderpfade pruefen.","fix_category":"MANUAL","can_fix":"no"}
+  ],
+  "fix_suggestions": [
+  ]
+}

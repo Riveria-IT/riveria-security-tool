@@ -46,6 +46,31 @@ run_fix_subset() {
     [ "$matched" -eq 0 ] && info "Keine passenden Fixes fuer diese Auswahl."
 }
 
+run_fix_subset_by_category() {
+    local category="$1"
+    local i matched=0
+
+    for ((i=0; i<${#FIX_IDS[@]}; i++)); do
+        [ "${FIX_CATEGORIES[$i]}" = "$category" ] || continue
+        matched=1
+        run_fix_by_index "$i"
+    done
+
+    [ "$matched" -eq 0 ] && info "Keine passenden Fixes fuer diese Auswahl."
+}
+
+count_fixes_by_category() {
+    local category="$1"
+    local i count=0
+
+    for ((i=0; i<${#FIX_IDS[@]}; i++)); do
+        [ "${FIX_CATEGORIES[$i]}" = "$category" ] || continue
+        count=$((count + 1))
+    done
+
+    printf '%s' "$count"
+}
+
 run_fix_selection_menu() {
     local choice
 
@@ -92,6 +117,22 @@ show_fix_suggestions() {
     done
 }
 
+show_beginner_fix_suggestions() {
+    local i
+
+    section "Einfache Fix-Hilfe"
+    if [ "${#FIX_IDS[@]}" -eq 0 ]; then
+        info "Keine vorbereiteten Fixes vorhanden."
+        return
+    fi
+
+    for ((i=0; i<${#FIX_IDS[@]}; i++)); do
+        printf '%s) %s [%s]\n' "$((i + 1))" "${FIX_TITLES[$i]}" "${FIX_CATEGORIES[$i]}"
+        printf '   Warum: %s\n' "$(beginner_fix_reason_text "${FIX_IDS[$i]}" "${FIX_RISKS[$i]}")"
+        printf '   Danach pruefen: %s\n' "${FIX_TESTS[$i]}"
+    done
+}
+
 run_fix_assistant() {
     ensure_fix_context
 
@@ -124,6 +165,36 @@ EOF
     done
 }
 
+run_beginner_fix_assistant() {
+    ensure_fix_context
+
+    section "Einfacher Fix-Assistent"
+    if [ "${#FIX_IDS[@]}" -eq 0 ]; then
+        info "Keine vorbereiteten Fixes vorhanden."
+        return
+    fi
+
+    local choice
+    while true; do
+        cat <<'EOF'
+1) Nur sichere automatische Fixes anwenden (empfohlen)
+2) Alle Fix-Vorschlaege einfach erklaert anzeigen
+3) Erweiterten Fix-Assistenten oeffnen
+0) Zurueck
+EOF
+        printf '\nAuswahl: '
+        read -r choice
+
+        case "$choice" in
+            1) run_fix_subset_by_category "AUTO-SAFE" ;;
+            2) show_beginner_fix_suggestions ;;
+            3) run_fix_assistant ;;
+            0) break ;;
+            *) warn "Ungueltige Auswahl." ;;
+        esac
+    done
+}
+
 run_updates_install() {
     section "Systemupdates"
     need_root
@@ -137,6 +208,11 @@ run_updates_install() {
         info "Systemupdates abgebrochen."
         return
     }
+
+    if dry_run_enabled; then
+        dry_run_info "Es wuerde 'apt-get update' und danach 'apt-get upgrade -y' ausgefuehrt."
+        return
+    fi
 
     if ! apt-get update; then
         bad "apt-get update fehlgeschlagen."

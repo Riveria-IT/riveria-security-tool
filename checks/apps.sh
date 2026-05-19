@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
 app_scan_roots() {
+    detect_webroots
+    if [ "${#DETECTED_WEBROOTS[@]}" -gt 0 ]; then
+        printf '%s\n' "${DETECTED_WEBROOTS[@]}"
+        return
+    fi
+
     if [ "${#DETECTED_PROJECTS[@]}" -gt 0 ]; then
         local marker root roots=()
         for marker in "${DETECTED_PROJECTS[@]}"; do

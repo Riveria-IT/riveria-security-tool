@@ -1,0 +1,4 @@
+Port 2222
+PermitRootLogin yes
+PasswordAuthentication yes
+X11Forwarding yes

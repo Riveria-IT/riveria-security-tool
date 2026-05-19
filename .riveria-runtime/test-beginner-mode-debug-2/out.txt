@@ -1,0 +1,21 @@
+
+[1m== Einfacher Fix-Assistent ==[0m
+1) Nur sichere automatische Fixes anwenden (empfohlen)
+2) Alle Fix-Vorschlaege einfach erklaert anzeigen
+3) Erweiterten Fix-Assistenten oeffnen
+0) Zurueck
+
+Auswahl: 
+[1m== Einfache Fix-Hilfe ==[0m
+1) UFW Basisregeln anwenden [AUTO-SAFE]
+   Grund: Firewall ist installiert, aber nicht aktiv oder nicht gehaertet
+   Test danach: ufw status
+2) SSH Root-Login deaktivieren [GUIDED]
+   Grund: SSH Root-Login erhoeht das Risiko eines erfolgreichen Angriffs
+   Test danach: sshd -t
+1) Nur sichere automatische Fixes anwenden (empfohlen)
+2) Alle Fix-Vorschlaege einfach erklaert anzeigen
+3) Erweiterten Fix-Assistenten oeffnen
+0) Zurueck
+
+Auswahl: 

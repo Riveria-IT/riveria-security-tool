@@ -2,7 +2,22 @@
 
 quarantine_collect_candidates() {
     local roots=("/var/www" "/srv" "/opt")
-    local patterns=("*.sql" "*.bak" "*.old" "*.backup" "id_rsa" "*.pem" "*.key")
+    local patterns=("*.sql" "*.bak" "*.old" "*.backup" "*.zip" "*.tar" "*.tar.gz" "wp-config.php.bak")
+    local root pattern file
+
+    for root in "${roots[@]}"; do
+        [ -d "$root" ] || continue
+        for pattern in "${patterns[@]}"; do
+            while IFS= read -r file; do
+                [ -n "$file" ] && printf '%s\n' "$file"
+            done < <(find "$root" -maxdepth 5 -type f -name "$pattern" 2>/dev/null | head -n 50)
+        done
+    done
+}
+
+quarantine_collect_sensitive_key_candidates() {
+    local roots=("/var/www" "/srv" "/opt")
+    local patterns=("id_rsa" "*.pem" "*.key")
     local root pattern file
 
     for root in "${roots[@]}"; do
@@ -54,15 +69,29 @@ fix_quarantine_sensitive_files() {
     need_root
 
     local files=()
+    local key_files=()
     local file target_dir
     while IFS= read -r file; do
         [ -n "$file" ] || continue
         append_unique "$file" "${files[@]}" || files+=("$file")
     done < <(quarantine_collect_candidates)
+    while IFS= read -r file; do
+        [ -n "$file" ] || continue
+        append_unique "$file" "${key_files[@]}" || key_files+=("$file")
+    done < <(quarantine_collect_sensitive_key_candidates)
 
     if [ "${#files[@]}" -eq 0 ]; then
-        info "Keine Quarantaene-Kandidaten gefunden."
-        return
+        info "Keine automatisch verschiebbaren Quarantaene-Kandidaten gefunden."
+        if [ "${#key_files[@]}" -eq 0 ]; then
+            return
+        fi
+    fi
+
+    if [ "${#key_files[@]}" -gt 0 ]; then
+        warn "Private Keys oder PEM-Dateien wurden erkannt und werden nicht automatisch verschoben."
+        print_array_lines "${key_files[@]}"
+        info "Diese Dateien koennen produktiv genutzt sein und muessen manuell geprueft werden."
+        [ "${#files[@]}" -gt 0 ] || return
     fi
 
     target_dir="$QUARANTINE_DIR/$(quarantine_timestamp_dir)"
@@ -74,6 +103,13 @@ fix_quarantine_sensitive_files() {
         info "Quarantaene abgebrochen."
         return
     }
+
+    if dry_run_enabled; then
+        for file in "${files[@]}"; do
+            dry_run_info "Datei wuerde in die Quarantaene verschoben: $file -> $target_dir/$(basename "$file")"
+        done
+        return
+    fi
 
     mkdir -p "$target_dir" || {
         bad "Quarantaene-Ordner konnte nicht erstellt werden: $target_dir"

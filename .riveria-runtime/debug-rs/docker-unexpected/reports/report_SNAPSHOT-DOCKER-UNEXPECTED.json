@@ -1,0 +1,19 @@
+{
+  "tool": "Riveria Server Audit & Hardening Tool",
+  "version": "1.0.0-alpha",
+  "report_id": "SNAPSHOT-DOCKER-UNEXPECTED",
+  "date": "2026-01-01T12:05:00+0000",
+  "server": "snapshot-host",
+  "score": 96,
+  "status": "Gut",
+  "summary": {"ok": 0, "warnings": 1, "critical": 0},
+  "profiles": [],
+  "components": [],
+  "active_listeners": [
+  ],
+  "issues": [
+    {"id":"DOCKER-001","title":"Unerwartete oeffentliche Docker-Port-Mappings erkannt","level":"WARNUNG","description":"Mindestens ein Container ist ueber einen unerwarteten Host-Port oeffentlich gemappt.","recommendation":"Port-Mappings und Reverse-Proxy-Design manuell pruefen.","fix_category":"MANUAL","can_fix":"no"}
+  ],
+  "fix_suggestions": [
+  ]
+}

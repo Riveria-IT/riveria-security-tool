@@ -1,0 +1,44 @@
+Riveria Server Audit & Hardening Tool
+Version: 1.0.0-alpha
+Report-ID: 2026-05-19_16-20-19
+Datum: 2026-05-19 16:20:19 CEST
+Server: Michaels-Mac-mini.local
+Score: 88/100
+Status: Gut
+Zusammenfassung: 0 OK, 3 Warnungen, 0 kritisch
+
+Pruefarten:
+- Vollaudit: nicht getestet
+- Aktive Sicherheitspruefung (safe): nicht getestet
+- Lab-Validierungsmodus (lokal): ausgefuehrt
+
+Erkannte Profile:
+- Keine Profile erkannt
+
+Erkannte Komponenten:
+- Keine Komponenten erkannt
+
+Aktive Listener:
+- Keine Listener erkannt
+
+Probleme:
+- Keine Probleme registriert
+
+Aktive Tests:
+[WARNUNG] ACT-010 - Lokale Debug- oder Hilfspfade reagieren im Lab-Modus
+  Beschreibung: Im lokalen Lab-Modus reagierten typische Debug-, Actuator- oder Doku-Pfade direkt.
+  Empfehlung: Debug-Werkzeuge, Swagger, Actuator oder Entwicklerhilfen fuer Produktion und Reverse Proxy bewusst absichern.
+[WARNUNG] ACT-011 - Zusatzmethoden reagieren im lokalen Lab-Modus
+  Beschreibung: Im lokalen Lab-Modus antworteten zusaetzliche HTTP-Methoden wie OPTIONS erfolgreich.
+  Empfehlung: Erlaubte Methoden, CORS, Reverse-Proxy-Weiterleitung und App-Router bewusst pruefen.
+[WARNUNG] ACT-012 - Lokaler Lab-Modus erzeugt unerwartete Fehlerantworten
+  Beschreibung: Einige lokale Sonderpfade oder Methoden fuehrten zu 5xx-Antworten statt zu einer sauberen Ablehnung.
+  Empfehlung: Error-Handling, Router-Schutz und Reverse-Proxy-Regeln fuer Sonderpfade pruefen.
+
+Fix-Vorschlaege:
+- Keine Fix-Vorschlaege registriert
+
+Report-Pfade:
+- TXT:  /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/reports/report_2026-05-19_16-20-19.txt
+- JSON: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/reports/report_2026-05-19_16-20-19.json
+- HTML: /Users/michaelberger/Desktop/riveria-security-tool/.riveria-runtime/reports/report_2026-05-19_16-20-19.html

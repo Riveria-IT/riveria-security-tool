@@ -1,0 +1,22 @@
+
+[1m== UFW Basis ==[0m
+
+[1m== UFW Regelplan ==[0m
+Incoming:        deny
+Outgoing:        allow
+IPv6:            bestehende Einstellung beibehalten
+[34m[INFO][0m Geplante Freigaben:
+- 22/tcp
+- 80/tcp
+- 443/tcp
+- 8088/tcp
+- 8443/tcp
+[34m[INFO][0m Aktive oeffentliche Listener werden automatisch in den Plan uebernommen, damit genutzte Ports nicht versehentlich blockiert werden.
+Diese UFW-Basisregeln anwenden? [y/N] [32m[OK][0m UFW Default-Regeln gesetzt.
+[32m[OK][0m Freigabe gesetzt: 22/tcp
+[32m[OK][0m Freigabe gesetzt: 80/tcp
+[32m[OK][0m Freigabe gesetzt: 443/tcp
+[32m[OK][0m Freigabe gesetzt: 8088/tcp
+[32m[OK][0m Freigabe gesetzt: 8443/tcp
+[32m[OK][0m UFW ist aktiviert.
+[32m[OK][0m UFW Statuspruefung erfolgreich.

@@ -1,0 +1,21 @@
+
+== Einfache Zusammenfassung ==
+Sicherheitswert: 68/100
+Status:          Mittel
+Ampel:           ROT - sofort wichtig
+Kritische Probleme: 1
+Warnungen:       1
+Sichere Auto-Fixes: 1
+Fixes fuer kritisch: 1
+[INFO] Wichtigste Punkte:
+- [ROT] Ein internes Web-Backend antwortet aktuell nicht.
+- [GELB] Die Firewall ist vorhanden, aber noch nicht aktiv.
+[INFO] Fixes koennen jetzt Schritt fuer Schritt bestaetigt werden.
+
+== Empfohlene Reihenfolge ==
+[INFO] Jetzt sofort tun:
+- Ein internes Web-Backend antwortet aktuell nicht.
+[INFO] Heute noch pruefen:
+- Die Firewall ist vorhanden, aber noch nicht aktiv.
+[INFO] Spaeter verbessern:
+- Der SSH-Zugang soll sicherer werden, ohne bestehende Nutzer auszusperren.
