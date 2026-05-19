@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 set -u
 
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+
+while [ -L "$SCRIPT_PATH" ]; do
+    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
+    case "$SCRIPT_PATH" in
+        /*) ;;
+        *) SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH" ;;
+    esac
+done
+
+BASE_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 
 source "$BASE_DIR/lib/core.sh"
 source "$BASE_DIR/lib/ui.sh"
