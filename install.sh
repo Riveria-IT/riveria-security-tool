@@ -65,6 +65,8 @@ install_launcher() {
 }
 
 main() {
+    local launcher_path
+
     printf 'Riveria wird jetzt heruntergeladen und eingerichtet...\n'
     download_archive
 
@@ -80,9 +82,10 @@ main() {
     printf 'Zielordner: %s\n' "$TARGET_DIR"
 
     install_launcher
+    launcher_path="$HOME/.local/bin/riveria-security-tool"
 
     printf '\nEmpfohlener einfacher Start:\n'
-    printf '1. sudo riveria-security-tool\n'
+    printf '1. sudo %s\n' "$launcher_path"
     printf '2. im Menue: 20) Einsteiger-Modus (einfach gefuehrt)\n'
     printf '3. bei der Vorschau-Frage zuerst Ja waehlen\n'
 
@@ -92,7 +95,7 @@ main() {
     printf '3. sudo -E bash ./riveria-security-tool.sh\n'
 
     printf '\nSicherer Vorschau-Start ohne echte Aenderungen:\n'
-    printf 'DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E riveria-security-tool\n'
+    printf 'DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E %s\n' "$launcher_path"
 }
 
 main "$@"
