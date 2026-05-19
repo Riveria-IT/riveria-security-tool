@@ -13,14 +13,10 @@ Wenn du das Tool zum ersten Mal benutzt, nimm diesen Weg:
 1. Installieren
 
 ```bash
-wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && ./install.sh
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo ./install.sh
 ```
 
-2. Starten
-
-```bash
-sudo "$HOME/.local/bin/riveria-security-tool"
-```
+2. Riveria startet danach direkt automatisch
 
 3. Im Menue `20) Einsteiger-Modus (einfach gefuehrt)` waehlen
 
@@ -36,7 +32,7 @@ Dann passiert Folgendes:
 Wenn du direkt ohne Aenderungen testen willst:
 
 ```bash
-DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E "$HOME/.local/bin/riveria-security-tool"
+DRY_RUN_MODE=1 RESULT_VIEW_MODE=simple sudo -E riveria-security-tool
 ```
 
 ## Fuer Einsteiger
