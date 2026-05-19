@@ -82,9 +82,9 @@ RESULT_VIEW_MODE=simple sudo -E bash ./riveria-security-tool.sh
 
 ## Direkt Installieren
 
-Die Standard-Installation legt das Projekt nach `~/riveria-security-tool` und den Launcher nach `~/.local/bin/riveria-security-tool`.
+Die empfohlene Standard-Installation legt das Projekt nach `/opt/riveria-security-tool` und den Launcher nach `/usr/local/bin/riveria-security-tool`.
 
-Direkt per `wget` herunterladen und installieren:
+Empfohlen fuer Server und produktive Hosts:
 
 ```bash
 wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo ./install.sh
@@ -93,10 +93,10 @@ wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security
 Der Installer ersetzt eine vorhandene Installation im Zielordner automatisch. Falls dort bereits eine `config.conf` liegt, wird sie vor dem Ersetzen gesichert und danach wiederhergestellt. Gefaehrliche Zielordner wie `/`, `/root`, `/home`, `/usr`, `/var`, `/etc` und `/opt` werden blockiert.
 Nach erfolgreicher Installation startet Riveria direkt automatisch. Falls du das nicht willst, setze `AUTO_START_AFTER_INSTALL=0`.
 
-Optional mit eigenem Zielordner:
+Alternative ohne `sudo` fuer lokale Tests im Benutzerverzeichnis:
 
 ```bash
-wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && sudo ./install.sh /opt/riveria-security-tool
+wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security-tool/main/install.sh && chmod +x install.sh && INSTALL_LAUNCHER_MODE=local ./install.sh "$HOME/riveria-security-tool"
 ```
 
 Falls `wget` nicht vorhanden ist, funktioniert auch `curl`:
@@ -114,7 +114,7 @@ wget -O install.sh https://raw.githubusercontent.com/Riveria-IT/riveria-security
 Optional kannst du weiter einen lokalen Launcher erzwingen:
 
 ```bash
-INSTALL_LAUNCHER_MODE=local AUTO_START_AFTER_INSTALL=0 sudo ./install.sh "$HOME/riveria-security-tool"
+INSTALL_LAUNCHER_MODE=local AUTO_START_AFTER_INSTALL=0 ./install.sh "$HOME/riveria-security-tool"
 ```
 
 Der Installer unterstuetzt ausserdem:

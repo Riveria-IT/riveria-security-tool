@@ -34,10 +34,18 @@ require_command() {
     command -v "$1" >/dev/null 2>&1 || fail "Benoetigter Befehl fehlt: $1"
 }
 
-require_root_for_system_install() {
-    if [ "${EUID:-$(id -u)}" -ne 0 ]; then
-        fail "Bitte Installer mit sudo starten. Standard-Ziel ist /opt/riveria-security-tool und der Launcher wird unter /usr/local/bin angelegt."
-    fi
+require_supported_install_mode() {
+    case "$INSTALL_LAUNCHER_MODE" in
+        system)
+            if [ "${EUID:-$(id -u)}" -ne 0 ]; then
+                fail "Bitte Installer mit sudo starten. Standard-Ziel ist /opt/riveria-security-tool und der Launcher wird unter /usr/local/bin angelegt."
+            fi
+            ;;
+        local) ;;
+        *)
+            fail "INSTALL_LAUNCHER_MODE muss 'system' oder 'local' sein."
+            ;;
+    esac
 }
 
 validate_ref_type() {
@@ -87,7 +95,7 @@ prepare_environment() {
     TARGET_DIR="$(normalize_target_dir "$RAW_TARGET_DIR")"
     assert_safe_target_dir "$TARGET_DIR"
     configure_archive_source
-    require_root_for_system_install
+    require_supported_install_mode
 
     require_command tar
     require_command mktemp
@@ -194,6 +202,12 @@ install_launcher() {
             launcher_target="$SYSTEM_LAUNCHER_DIR/riveria-security-tool"
             ;;
         local)
+            case "$TARGET_DIR" in
+                "$HOME"/*) ;;
+                *)
+                    fail "Lokale Installation bitte in einen Ordner unterhalb von $HOME ausfuehren, z. B. $HOME/riveria-security-tool."
+                    ;;
+            esac
             mkdir -p "$LOCAL_LAUNCHER_DIR"
             launcher_target="$LOCAL_LAUNCHER_DIR/riveria-security-tool"
             ;;
