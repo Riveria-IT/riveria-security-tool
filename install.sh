@@ -13,8 +13,8 @@ EXTRACT_DIR="$TMP_DIR/extract"
 CONFIG_BACKUP_FILE="$TMP_DIR/config.conf.backup"
 LOCAL_LAUNCHER_DIR="$HOME/.local/bin"
 SYSTEM_LAUNCHER_DIR="/usr/local/bin"
-INSTALL_LAUNCHER_MODE="${INSTALL_LAUNCHER_MODE:-auto}"
-RAW_TARGET_DIR="${1:-$HOME/riveria-security-tool}"
+INSTALL_LAUNCHER_MODE="${INSTALL_LAUNCHER_MODE:-system}"
+RAW_TARGET_DIR="${1:-/opt/riveria-security-tool}"
 TARGET_DIR=""
 ARCHIVE_URL=""
 EXTRACTED_DIR=""
@@ -31,6 +31,12 @@ fail() {
 
 require_command() {
     command -v "$1" >/dev/null 2>&1 || fail "Benoetigter Befehl fehlt: $1"
+}
+
+require_root_for_system_install() {
+    if [ "${EUID:-$(id -u)}" -ne 0 ]; then
+        fail "Bitte Installer mit sudo starten. Standard-Ziel ist /opt/riveria-security-tool und der Launcher wird unter /usr/local/bin angelegt."
+    fi
 }
 
 validate_ref_type() {
@@ -80,6 +86,7 @@ prepare_environment() {
     TARGET_DIR="$(normalize_target_dir "$RAW_TARGET_DIR")"
     assert_safe_target_dir "$TARGET_DIR"
     configure_archive_source
+    require_root_for_system_install
 
     require_command tar
     require_command mktemp
@@ -155,38 +162,26 @@ EOF
 }
 
 install_launcher() {
-    local launcher_target launcher_mode
+    local launcher_target
 
     case "$INSTALL_LAUNCHER_MODE" in
-        auto)
-            if can_write_dir "$SYSTEM_LAUNCHER_DIR"; then
-                launcher_target="$SYSTEM_LAUNCHER_DIR/riveria-security-tool"
-                launcher_mode="system"
-            else
-                mkdir -p "$LOCAL_LAUNCHER_DIR"
-                launcher_target="$LOCAL_LAUNCHER_DIR/riveria-security-tool"
-                launcher_mode="local"
-            fi
-            ;;
         system)
             can_write_dir "$SYSTEM_LAUNCHER_DIR" || fail "System-Launcher in $SYSTEM_LAUNCHER_DIR nicht schreibbar. Installer mit sudo starten oder INSTALL_LAUNCHER_MODE=local nutzen."
             launcher_target="$SYSTEM_LAUNCHER_DIR/riveria-security-tool"
-            launcher_mode="system"
             ;;
         local)
             mkdir -p "$LOCAL_LAUNCHER_DIR"
             launcher_target="$LOCAL_LAUNCHER_DIR/riveria-security-tool"
-            launcher_mode="local"
             ;;
         *)
-            fail "INSTALL_LAUNCHER_MODE muss 'auto', 'system' oder 'local' sein."
+            fail "INSTALL_LAUNCHER_MODE muss 'system' oder 'local' sein."
             ;;
     esac
 
     write_launcher "$launcher_target"
 
     printf '\nLauncher erstellt: %s\n' "$launcher_target" >&2
-    if [ "$launcher_mode" = "local" ]; then
+    if [ "$launcher_target" = "$LOCAL_LAUNCHER_DIR/riveria-security-tool" ]; then
         printf 'Hinweis: sudo uebernimmt ~/.local/bin oft nicht in den PATH.\n' >&2
         printf 'Fuer sudo riveria-security-tool ist ein System-Launcher unter %s professioneller.\n' "$SYSTEM_LAUNCHER_DIR" >&2
     fi
@@ -224,11 +219,11 @@ main() {
     launcher_path="$(install_launcher)"
 
     printf '\nEmpfohlener Start:\n'
-    if [ "$launcher_path" = "$SYSTEM_LAUNCHER_DIR/riveria-security-tool" ]; then
-        printf '1. sudo riveria-security-tool\n'
-    else
+    if [ "$launcher_path" = "$LOCAL_LAUNCHER_DIR/riveria-security-tool" ]; then
         printf '1. sudo "%s"\n' "$launcher_path"
-        printf '   oder Installer mit sudo und INSTALL_LAUNCHER_MODE=system erneut ausfuehren.\n'
+        printf '   oder Installer mit sudo erneut ohne Sonderoptionen ausfuehren.\n'
+    else
+        printf '1. sudo riveria-security-tool\n'
     fi
     printf '2. im Menue: 20) Einsteiger-Modus (einfach gefuehrt)\n'
     printf '3. bei der Vorschau-Frage zuerst Ja waehlen\n'
